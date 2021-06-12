@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>Infomation of My Island - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+const NameInput = cc('input');
+const AvatarInput = cc('input');
+const EmailInput = cc('input');
+const LinkInput = cc('input');
+const AddressInput = cc('input');
+
+const Form = cc('div', null, [
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:NameInput.id}).text('Name'),
+    m(NameInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('岛名，相当于用户名或昵称 (必填)'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:AvatarInput.id}).text('Avatar'),
+    m(AvatarInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('头像图片的网址，头像图片应为正方形，建议头像体积控制在 50KB 以下。请确保头像图片能跨域访问。(可留空)'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:EmailInput.id}).text('Email'),
+    m(EmailInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('建议填写真实 email, 因为需要确保与其他小岛的 email 不相同，同时可作为后备联系方式。(必填, 如果实在不想暴露 email, 也可填写任意字符串, 但必须确保与别人不一样)'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:LinkInput.id}).text('Link'),
+    m(LinkInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('一个网址，建议填写小岛的网页版，也可填写博客或其他社交帐号的网址。(可留空)'),
+  ]),
+  m('div').addClass('mb-3').append([
+    m('label').addClass('form-label fw-bold').attr({for:AddressInput.id}).text('Address'),
+    m(AddressInput).addClass('form-control').attr({type:'text'}),
+    m('div').addClass('form-text').text('小岛地址，即 JSON 文件的链接。(可留空, 建议在需要更新地址时才填写, 一旦填写, 会自动更新地址)'),
+  ]),
+]);
+
+$('#root').append([
+  m(Form),
+]);
+
+</script>
+</body>
+</html>
