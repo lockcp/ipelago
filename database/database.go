@@ -8,7 +8,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const MyID = "My-Island-ID"
+const MyIslandID = "My-Island-ID"
 
 type (
 	Island = model.Island
@@ -33,7 +33,7 @@ func (db *DB) Open(dbPath string) (err error) {
 }
 
 func (db *DB) MyIsland() (Island, error) {
-	island, err := getIslandByID(db.DB, MyID)
+	island, err := getIslandByID(db.DB, MyIslandID)
 	if err == sql.ErrNoRows {
 		err = nil
 	}

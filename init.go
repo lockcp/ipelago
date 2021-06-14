@@ -9,18 +9,18 @@ import (
 	"github.com/ahui2016/ipelago/util"
 )
 
-type (
-	Island = model.Island
-)
-
-var myIsland Island
-
 const OK = http.StatusOK
 
 const (
 	dbFileName = "ipelago.db"
 	REQUIRE    = "REQUIRE.md"
 )
+
+type (
+	Island = model.Island
+)
+
+var myIsland Island
 
 var (
 	db   = new(database.DB)
@@ -31,7 +31,6 @@ func init() {
 	if util.PathIsNotExist(REQUIRE) {
 		panic("not found: REQUIRE.md")
 	}
-
 	flag.Parse()
 	util.Panic(db.Open(dbFileName))
 	util.Panic(restoreMyIsland())

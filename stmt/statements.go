@@ -6,11 +6,12 @@ CREATE TABLE IF NOT EXISTS island
 (
 	id         text    PRIMARY KEY,
   name       text    NOT NULL,
-  avatar     text    NOT NULL,
   email      text    NOT NULL,
-  link       text    NOT NULL UNIQUE,
-  address    text    NOT NULL,
-  note       text    NOT NULL
+  avatar     text    NOT NULL,
+  link       text    NOT NULL,
+  address    text    NOT NULL UNIQUE,
+  note       text    NOT NULL,
+  status     text    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS cluster
@@ -67,7 +68,11 @@ const GetLastMessage = `
     INNER JOIN message ON island_msg.msg_id = message.id
     WHERE island.id=? ORDER BY message.ctime DESC LIMIT 1;`
 
+const InsertIsland = `
+    INSERT INTO island (id, name, email, avatar, link, address, note, status)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
+
 const UpdateIsland = `
     UPDATE island
-    SET name=?, avatar=?, email=?, link=?, address=?, note=?
+    SET name=?, email=?, avatar=?, link=?, address=?, note=?, status=?
     WHERE id=?;`

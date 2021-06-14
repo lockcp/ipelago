@@ -34,8 +34,8 @@ func scanIsland(row Row) (island Island, err error) {
 	err = row.Scan(
 		&island.ID,
 		&island.Name,
-		&island.Avatar,
 		&island.Email,
+		&island.Avatar,
 		&island.Link,
 		&island.Address,
 		&island.Note,
@@ -56,8 +56,8 @@ func updateIsland(tx TX, island Island) error {
 	_, err := tx.Exec(
 		stmt.UpdateIsland,
 		island.Name,
-		island.Avatar,
 		island.Email,
+		island.Avatar,
 		island.Link,
 		island.Address,
 		island.Note,

@@ -12,6 +12,7 @@ func main() {
 
 	api := e.Group("/api")
 	api.GET("/get-my-island", getMyIsland)
+	api.POST("/create-my-island", createMyIsland)
 
 	e.Logger.Fatal(e.Start(*addr))
 }
