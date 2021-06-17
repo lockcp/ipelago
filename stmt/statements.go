@@ -59,7 +59,7 @@ const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetIslandByID = `
-    SELECT id, name, avatar, email, link, address, note
+    SELECT id, name, email, avatar, link, address, note, status
     FROM island WHERE id=?;`
 
 const GetLastMessage = `
@@ -67,6 +67,12 @@ const GetLastMessage = `
     FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
     INNER JOIN message ON island_msg.msg_id = message.id
     WHERE island.id=? ORDER BY message.ctime DESC LIMIT 1;`
+
+const GetIslandMessages = `
+    SELECT message.id, message.ctime, message.at, message.body, message.md
+    FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
+    INNER JOIN message ON island_msg.msg_id = message.id
+    WHERE island.id=? ORDER BY message.ctime DESC;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status)
@@ -76,3 +82,10 @@ const UpdateIsland = `
     UPDATE island
     SET name=?, email=?, avatar=?, link=?, address=?, note=?, status=?
     WHERE id=?;`
+
+const InsertMsg = `
+    INSERT INTO message (id, ctime, at, body, md)
+    VALUES (?, ?, ?, ?, ?);`
+
+const InsertIslandMsg = `
+    INSERT INTO island_msg (island_id, msg_id) VALUES (?, ?);`

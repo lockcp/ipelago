@@ -2,12 +2,27 @@ package util
 
 import (
 	"crypto/rand"
+	"fmt"
 	"math/big"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// WrapErrors 把多个错误合并为一个错误.
+func WrapErrors(allErrors ...error) (wrapped error) {
+	for _, err := range allErrors {
+		if err != nil {
+			if wrapped == nil {
+				wrapped = err
+			} else {
+				wrapped = fmt.Errorf("%v | %v", err, wrapped)
+			}
+		}
+	}
+	return
+}
 
 // ErrorContains returns NoCaseContains(err.Error(), substr)
 // Returns false if err is nil.

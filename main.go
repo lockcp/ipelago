@@ -10,9 +10,12 @@ func main() {
 
 	e.Static("/public", "public")
 
-	api := e.Group("/api")
+	e.File("/", "public/my-island-info.html")
+
+	api := e.Group("/api", sleep)
 	api.GET("/get-my-island", getMyIsland)
 	api.POST("/create-my-island", createMyIsland)
+	api.GET("/my-messages", myMessages)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

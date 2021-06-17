@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/ahui2016/ipelago/database"
+	"github.com/ahui2016/ipelago/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,9 +29,31 @@ func getMyIsland(c echo.Context) error {
 func createMyIsland(c echo.Context) error {
 	name, e1 := getFormValue(c, "name")
 	email, e2 := getFormValue(c, "email")
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
 	avatar := strings.TrimSpace(c.FormValue("avatar"))
 	link := strings.TrimSpace(c.FormValue("link"))
 
+	island := Island{
+		ID:     database.MyIslandID,
+		Name:   name,
+		Email:  email,
+		Avatar: avatar,
+		Link:   link,
+	}
+	if err := db.CreateMyIsland(island); err != nil {
+		return err
+	}
+	return restoreMyIsland()
+}
+
+func myMessages(c echo.Context) error {
+	messages, err := db.IslandMessages(database.MyIslandID)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, messages)
 }
 
 // getFormValue gets the c.FormValue(key), trims its spaces,

@@ -20,6 +20,9 @@
 
 <script>
 
+const Loading = CreateLoading();
+const Alerts = CreateAlerts();
+
 const title = m('h1').addClass('display-6').text('建岛');
 
 const NameInput = cc('input');
@@ -51,10 +54,54 @@ const Form = cc('div', null, [
   ]),
 ]);
 
+const CreateBtn = cc('button');
+const UpdateBtn = cc('button');
+
+const SubmitBtnArea = cc('p', null, [
+  m(CreateBtn).text('Create').addClass('btn btn-primary').attr({type:'button'})
+    .hide().click(() => {
+      const body = new FormData();
+      body.set('name', $(NameInput.id).val());
+      body.set('email', $(EmailInput.id).val());
+      body.set('avatar', $(AvatarInput.id).val());
+      body.set('link', $(LinkInput.id).val());
+      ajax({method:'POST',url:'/api/create-my-island',alerts:Alerts,buttonID:CreateBtn.id,body:body},
+          () => {
+            Alerts.insert('success', '建岛成功');
+            $(CreateBtn.id).hide();
+            $(UpdateBtn.id).show();
+          });
+  }),
+  m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'}).hide(),
+]);
+
 $('#root').append([
   title,
-  m(Form).addClass('mt-5'),
+  m(Loading),
+  m(Form).addClass('mt-5').hide(),
+  m(Alerts).addClass('my-3'),
+  m(SubmitBtnArea).addClass('text-center'),
 ]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
+      (island) => {
+        $(Form.id).show();
+        if (island.ID) {
+          $(UpdateBtn.id).show();
+          $(NameInput.id).val(island.Name);
+          $(EmailInput.id).val(island.Email);
+          $(AvatarInput.id).val(island.Avatar);
+          $(LinkInput.id).val(island.Link);
+        } else {
+          $(CreateBtn.id).show();
+        }
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
 
 </script>
 </body>
