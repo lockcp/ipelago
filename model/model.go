@@ -15,7 +15,7 @@ const (
 type Island struct {
 	ID      string  // primary key
 	Name    string  // 岛名
-	Email   string  // Email 或唯一识别字符串
+	Email   string  // Email
 	Avatar  string  // 头像
 	Link    string  // 小岛主页或岛主博客
 	Address string  // 小岛地址 (JSON 文件地址)
@@ -25,18 +25,18 @@ type Island struct {
 }
 
 type Message struct {
-	ID    string
-	CTime int64
-	At    string
-	Body  string
-	MD    bool
+	ID   string
+	Time int64
+	At   string // 用于互相 @, 暂不启用
+	Body string
+	MD   bool // 用于 markdown, 暂不启用
 }
 
 func NewMessage(body string) *Message {
 	return &Message{
-		ID:    util.RandomID(),
-		CTime: util.TimeNow(),
-		Body:  body,
+		ID:   util.RandomID(),
+		Time: util.TimeNow(),
+		Body: body,
 	}
 }
 

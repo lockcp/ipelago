@@ -50,7 +50,7 @@ func scanIsland(row Row) (island Island, err error) {
 func scanMessage(row Row) (msg Message, err error) {
 	err = row.Scan(
 		&msg.ID,
-		&msg.CTime,
+		&msg.Time,
 		&msg.At,
 		&msg.Body,
 		&msg.MD,
@@ -102,7 +102,7 @@ func insertMsg(tx TX, msg *Message, islandID string) error {
 	_, e1 := tx.Exec(
 		stmt.InsertMsg,
 		msg.ID,
-		msg.CTime,
+		msg.Time,
 		msg.At,
 		msg.Body,
 		msg.MD,
@@ -121,9 +121,9 @@ func insertFirsstMsg(tx TX, id, name string) error {
 	datetime := now.Format("2006-01-02 15:04:05")
 	body := fmt.Sprintf("%s 创建于 %s", name, datetime)
 	msg := &Message{
-		ID:    util.RandomID(),
-		CTime: now.Unix(),
-		Body:  body,
+		ID:   util.RandomID(),
+		Time: now.Unix(),
+		Body: body,
 	}
 	return insertMsg(tx, msg, id)
 }

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/ahui2016/ipelago/database"
-	"github.com/ahui2016/ipelago/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -27,11 +26,11 @@ func getMyIsland(c echo.Context) error {
 }
 
 func createMyIsland(c echo.Context) error {
-	name, e1 := getFormValue(c, "name")
-	email, e2 := getFormValue(c, "email")
-	if err := util.WrapErrors(e1, e2); err != nil {
+	name, err := getFormValue(c, "name")
+	if err != nil {
 		return err
 	}
+	email := strings.TrimSpace((c.FormValue("email")))
 	avatar := strings.TrimSpace(c.FormValue("avatar"))
 	link := strings.TrimSpace(c.FormValue("link"))
 

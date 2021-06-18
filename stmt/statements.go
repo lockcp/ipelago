@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS island_cluster
 CREATE TABLE IF NOT EXISTS message
 (
   id       text    PRIMARY KEY,
-  ctime    int     NOT NULL,
+  time    int     NOT NULL,
   at       text    NOT NULL,
   body     text    NOT NULL,
   md       int     NOT NULL
@@ -63,16 +63,16 @@ const GetIslandByID = `
     FROM island WHERE id=?;`
 
 const GetLastMessage = `
-    SELECT message.id, message.ctime, message.at, message.body, message.md
+    SELECT message.id, message.time, message.at, message.body, message.md
     FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
     INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? ORDER BY message.ctime DESC LIMIT 1;`
+    WHERE island.id=? ORDER BY message.time DESC LIMIT 1;`
 
 const GetIslandMessages = `
-    SELECT message.id, message.ctime, message.at, message.body, message.md
+    SELECT message.id, message.time, message.at, message.body, message.md
     FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
     INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? ORDER BY message.ctime DESC;`
+    WHERE island.id=? ORDER BY message.time DESC;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status)
@@ -84,7 +84,7 @@ const UpdateIsland = `
     WHERE id=?;`
 
 const InsertMsg = `
-    INSERT INTO message (id, ctime, at, body, md)
+    INSERT INTO message (id, time, at, body, md)
     VALUES (?, ?, ?, ?, ?);`
 
 const InsertIslandMsg = `

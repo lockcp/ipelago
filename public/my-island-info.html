@@ -40,7 +40,7 @@ const Form = cc('div', null, [
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:EmailInput.id}).text('Email'),
     m(EmailInput).addClass('form-control').attr({type:'text'}),
-    m('div').addClass('form-text').text('建议填写真实 email, 因为需要确保与其他小岛的 email 不相同，同时可作为后备联系方式。(必填) (如果实在不想暴露 email, 也可填写任意字符串, 但必须确保与别人不一样)'),
+    m('div').addClass('form-text').text('岛主的真实 email, 可作为后备联系方式。(可留空，但建议填写)'),
   ]),
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:AvatarInput.id}).text('Avatar'),
