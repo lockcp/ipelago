@@ -118,8 +118,8 @@ func insertMsg(tx TX, msg *Message, islandID string) error {
 // insertFirstMsg 插入每个小岛被建立时的第一条消息。
 func insertFirsstMsg(tx TX, id, name string) error {
 	now := time.Now()
-	datetime := now.Format("2006-01-02 15:04:05")
-	body := fmt.Sprintf("%s 创建于 %s", name, datetime)
+	datetime := now.Format("2006年1月2日")
+	body := fmt.Sprintf("%s创建于%s", name, datetime)
 	msg := &Message{
 		ID:   util.RandomID(),
 		Time: now.Unix(),

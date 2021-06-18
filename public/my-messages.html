@@ -12,6 +12,7 @@
   <script src="/public/asset/dayjs.min.js"></script>
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
   <script src="/public/asset/util.js"></script>
+  <script src="/public/asset/msglist.js"></script>
   
   <title>Infomation of My Island - iPelago</title>
 </head>
@@ -25,6 +26,27 @@ const Alerts = CreateAlerts();
 
 const title = m('h1').addClass('display-6').text('My Messages');
 
+$('#root').append([
+  title,
+  m(Loading),
+  m(Alerts).addClass('my-3'),
+  m(MsgList),
+]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/my-messages',alerts:Alerts},
+      (messages) => {
+        if (!messages || messages.length == 0) {
+          Alerts.insert('info', '没有任何消息，可能尚未建岛');
+          return;
+        }
+        MsgList.append(messages);
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
 
 </script>
 </body>
