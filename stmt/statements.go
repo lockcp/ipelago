@@ -30,11 +30,14 @@ CREATE TABLE IF NOT EXISTS island_cluster
 CREATE TABLE IF NOT EXISTS message
 (
   id       text    PRIMARY KEY,
-  time    int     NOT NULL,
+  time     int     NOT NULL,
   at       text    NOT NULL,
   body     text    NOT NULL,
   md       int     NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_message_time ON message(time);
+CREATE INDEX IF NOT EXISTS idx_message_id_time ON message(id, time);
 
 CREATE TABLE IF NOT EXISTS island_msg
 (
@@ -73,6 +76,12 @@ const GetIslandMessages = `
     FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
     INNER JOIN message ON island_msg.msg_id = message.id
     WHERE island.id=? ORDER BY message.time DESC;`
+
+const GetNextMessage = `
+    SELECT message.id, message.time, message.at, message.body, message.md
+    FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
+    INNER JOIN message ON island_msg.msg_id = message.id
+    WHERE island.id=? AND message.time>? ORDER BY message.time DESC LIMIT 1;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status)

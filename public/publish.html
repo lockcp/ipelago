@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>Publish - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+const Loading = CreateLoading();
+const Alerts = CreateAlerts();
+
+const title = m('h1').attr({id:'title'}).text('Publish').addClass('display-6 my-5');
+
+$('#root').append([
+  title,
+  m(Loading),
+  m(Form).addClass('mt-5').hide(),
+  m(Alerts).addClass('my-3'),
+  m(SubmitBtnArea).addClass('text-center my-5'),
+]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
+      (island) => {
+        $('#title').text('我的小岛');
+        $(MsgBtn.id).show();
+        $(Form.id).show();
+        if (island.ID) {
+          $(UpdateBtn.id).show();
+          $(NameInput.id).val(island.Name);
+          $(EmailInput.id).val(island.Email);
+          $(AvatarInput.id).val(island.Avatar);
+          $(LinkInput.id).val(island.Link);
+        } else {
+          $(CreateBtn.id).show();
+        }
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
+
+</script>
+</body>
+</html>

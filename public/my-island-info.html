@@ -23,7 +23,7 @@
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').addClass('display-6').text('建岛');
+const title = m('h1').attr({id:'title'}).text('建岛').addClass('display-6 my-5');
 
 const NameInput = cc('input');
 const AvatarInput = cc('input');
@@ -56,6 +56,7 @@ const Form = cc('div', null, [
 
 const CreateBtn = cc('button');
 const UpdateBtn = cc('button');
+const MsgBtn = cc('a');
 
 const SubmitBtnArea = cc('p', null, [
   m(CreateBtn).text('Create').addClass('btn btn-primary').attr({type:'button'})
@@ -73,6 +74,8 @@ const SubmitBtnArea = cc('p', null, [
           });
   }),
   m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'}).hide(),
+  m(MsgBtn).text('Messages').addClass('btn btn-secondary ms-1')
+    .attr({type:'button',href:'/public/my-messages.html'}).hide(),
 ]);
 
 $('#root').append([
@@ -80,7 +83,7 @@ $('#root').append([
   m(Loading),
   m(Form).addClass('mt-5').hide(),
   m(Alerts).addClass('my-3'),
-  m(SubmitBtnArea).addClass('text-center'),
+  m(SubmitBtnArea).addClass('text-center my-5'),
 ]);
 
 init();
@@ -88,6 +91,8 @@ init();
 function init() {
   ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
       (island) => {
+        $('#title').text('我的小岛');
+        $(MsgBtn.id).show();
         $(Form.id).show();
         if (island.ID) {
           $(UpdateBtn.id).show();

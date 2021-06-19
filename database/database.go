@@ -45,7 +45,7 @@ func (db *DB) CreateMyIsland(island Island) error {
 	defer tx.Rollback()
 
 	e1 := insertIsland(tx, island)
-	e2 := insertFirsstMsg(tx, island.ID, island.Name)
+	e2 := insertFirsstMsg(tx, island.Name)
 	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
@@ -65,13 +65,24 @@ func (db *DB) IslandMessages(id string) (messages []*Message, err error) {
 	return getMessages(db.DB, stmt.GetIslandMessages, id)
 }
 
-// func (db *DB) AddMessage(msg *Message, id string) error {
-// 	tx := db.mustBegin()
-// 	defer tx.Rollback()
+func (db *DB) PostMyMsg(body string) (*Message, error) {
+	if err := util.CheckStringSize(body, model.KB); err != nil {
+		return nil, err
+	}
+	msg := model.NewMessage(body)
+	if err := db.InsertMessage(msg, MyIslandID); err != nil {
+		return nil, err
+	}
+	return msg, nil
+}
 
-// 	if err := insertMsg(tx, msg, id); err != nil {
-// 		return err
-// 	}
+func (db *DB) InsertMessage(msg *Message, id string) error {
+	tx := db.mustBegin()
+	defer tx.Rollback()
 
-// 	return tx.Commit()
-// }
+	if err := insertMsg(tx, msg, id); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}

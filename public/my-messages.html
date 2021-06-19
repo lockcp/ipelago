@@ -12,9 +12,8 @@
   <script src="/public/asset/dayjs.min.js"></script>
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
   <script src="/public/asset/util.js"></script>
-  <script src="/public/asset/msglist.js"></script>
   
-  <title>Infomation of My Island - iPelago</title>
+  <title>My Messages - iPelago</title>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
@@ -24,11 +23,66 @@
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').addClass('display-6').text('My Messages');
+const title = m('h1').addClass('display-6 my-5').text('My Messages');
+
+const MsgList = cc('ul');
+
+MsgList.view = () => m('ul')
+  .attr({id:MsgList.raw_id}).addClass('list-group list-group-flush');
+
+MsgList.append = (messages) => {
+  messages.forEach((msg) => {
+    const item = MsgItem(msg);
+    $(MsgList.id).append(m(item));
+  });
+};
+
+const MsgInput = cc('textarea');
+const PostBtn = cc('button');
+const MsgPostArea = cc('div', null, [
+  m(MsgInput).addClass('form-control').attr({rows:4}),
+  m('p').addClass('text-end mt-2').append(
+    m(PostBtn).text('Post').addClass('btn btn-outline-primary').attr({type:'button'}).click(() => {
+      const msgBody = $(MsgInput.id).val().trim();
+      if (!msgBody) {
+        $(MsgInput.id).focus();
+        return;
+      }
+      const bodySize = new Blob([msgBody]).size;
+      if (bodySize > 1024) {
+        Alerts.insert('danger', `消息体积(${bodySize} bytes) 超过上限 1024 bytes`);
+        $(MsgInput.id).focus();
+        return;        
+      }
+      const body = new FormData();
+      body.set('msg-body', msgBody);
+      ajax({method:'POST',url:'/api/post-message',alerts:Alerts,buttonID:PostBtn.id,body:body},
+          (msgID) => {
+            const msg = {
+              ID: msgID,
+              Time: dayjs().unix(),
+              Body: msgBody,
+            };
+            const item = MsgItem(msg);
+            $(MsgList.id).prepend(m(item));
+            $(MsgInput.id).val('').focus();
+          });
+    }),
+  ),
+]);
+
+const MoreBtn = cc('button');
+const PublishBtn = cc('button');
+
+const SubmitBtnArea = cc('p', null, [
+  m(MoreBtn),
+  m(PublishBtn),
+]);
 
 $('#root').append([
   title,
   m(Loading),
+  m(MsgPostArea).hide(),
   m(Alerts).addClass('my-3'),
   m(MsgList),
 ]);
@@ -42,10 +96,33 @@ function init() {
           Alerts.insert('info', '没有任何消息，可能尚未建岛');
           return;
         }
+        $(MsgPostArea.id).show();
+        window.setTimeout(() => { $(MsgInput.id).focus(); }, 500);
         MsgList.append(messages);
       }, null, () => {
         $(Loading.id).hide();
       });
+}
+
+function itemID(id) {
+  return `i${id}`;
+}
+
+function MsgItem(msg) {
+  const datetime = dayjs.unix(msg.Time).format('YYYY-MM-DD HH:mm:ss');
+  const Alerts = CreateAlerts();
+  const self = cc('div', itemID(msg.ID))
+
+  self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
+    m('img').addClass('Avatar').attr({src:'/public/avatars/default.jpg'}),
+    m('div').addClass('ms-3').append([
+      m('div').addClass('Datetime small text-muted').text(datetime),
+      m('span').addClass('Contents').text(msg.Body),
+      m(Alerts),
+    ]),
+  ]);
+
+  return self;
 }
 
 </script>

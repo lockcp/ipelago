@@ -116,7 +116,7 @@ func insertMsg(tx TX, msg *Message, islandID string) error {
 }
 
 // insertFirstMsg 插入每个小岛被建立时的第一条消息。
-func insertFirsstMsg(tx TX, id, name string) error {
+func insertFirsstMsg(tx TX, name string) error {
 	now := time.Now()
 	datetime := now.Format("2006年1月2日")
 	body := fmt.Sprintf("%s创建于%s", name, datetime)
@@ -125,7 +125,7 @@ func insertFirsstMsg(tx TX, id, name string) error {
 		Time: now.Unix(),
 		Body: body,
 	}
-	return insertMsg(tx, msg, id)
+	return insertMsg(tx, msg, MyIslandID)
 }
 
 func getMessages(tx TX, query string, args ...interface{}) (messages []*Message, err error) {
@@ -143,4 +143,9 @@ func getMessages(tx TX, query string, args ...interface{}) (messages []*Message,
 	}
 	err = rows.Err()
 	return
+}
+
+func getNextMsg(tx TX, datetime int64) (msg Message, err error) {
+	row := tx.QueryRow(stmt.GetNextMessage, MyIslandID, datetime)
+	return scanMessage(row)
 }

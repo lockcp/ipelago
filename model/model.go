@@ -4,6 +4,13 @@ import (
 	"github.com/ahui2016/ipelago/util"
 )
 
+const (
+	KB                 = 1024
+	MsgSizeLimitBase   = 10 * KB
+	MsgSizeLimitMargin = 5 * KB
+	MsgSizeLimit       = MsgSizeLimitBase + MsgSizeLimitMargin // 15KB
+)
+
 type Status string
 
 const (

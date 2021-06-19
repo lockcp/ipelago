@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // WrapErrors 把多个错误合并为一个错误.
@@ -79,4 +80,28 @@ func RandomID() string {
 	timestamp := time.Now().Unix()
 	idInt64 := timestamp*max + n.Int64()
 	return strconv.FormatInt(idInt64, 36)
+}
+
+// StringLimit 截取 s, 确保 s 不大于 limit.
+// 同时会确保截取后的 s 是有效的 utf8 字符串.
+func StringLimit(s string, limit int) string {
+	if len(s) > limit {
+		s = s[:limit]
+	}
+	for len(s) > 0 {
+		if utf8.ValidString(s) {
+			break
+		}
+		s = s[:len(s)-1]
+	}
+	return s
+}
+
+func CheckStringSize(body string, sizeLimit int64) error {
+	size := float64(len(body)) / 1024
+	limit := float64(sizeLimit) / 1024
+	if size > limit {
+		return fmt.Errorf("size: %.1fKB, exceeds the limit (%.1fKB)", size, limit)
+	}
+	return nil
 }
