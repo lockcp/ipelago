@@ -40,8 +40,8 @@ type Island struct {
 	Link    string  // 小岛主页或岛主博客
 	Address string  // 小岛地址 (JSON 文件地址)
 	Note    string  // 对该小岛的备注或评价
-	Message Message // 最新一条消息
 	Status  Status  // 状态
+	Message Message // 最新一条消息
 }
 
 type Message struct {

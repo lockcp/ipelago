@@ -87,8 +87,8 @@ func updateIsland(tx TX, island Island) error {
 		island.Link,
 		island.Address,
 		island.Note,
-		island.ID,
 		island.Status,
+		island.ID,
 	)
 	return err
 }

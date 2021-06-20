@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>Follow Islands - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+async function followIslands(islands) {
+  const failed = [];
+  for (const i=0; i<islands.length; i++) {
+    log('info', '正在尝试订阅: ' + islands[i]);
+    try {
+      const name = await follow(islands[i]);
+      log('success', '订阅成功: ' + name);
+    } catch (error) {
+      failed.push(islands[i]);
+      log('danger', error.name + ': ' + error.message);
+    }
+  }
+  if (failed.length > 0) {
+    $(IslandsInput.id).val(failed.join('\n'));
+    log('info', `操作结束，有 ${failed.length} 条订阅失败。`);
+  } else {
+    log('info', `操作结束，全部订阅成功。`);
+  }
+}
+
+function follow(islandAddr) {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(Error('timeout'));
+    }, 5000);
+
+    // onSuccess (outer)
+    ajax({method:'GET',url:islandAddr,responseType:'text'}, (island) => {
+      const body = new FormData();
+      body.set('island', island);
+      ajax({method:'POST',url:'/api/follow-island',body:body}, () => {
+        // onSuccess (inner)
+        resolve(island.name);
+      }, (that) => {
+        // onError (inner)
+        const errMsg = `${that.status} ${that.responseText}`;
+        reject(Error(errMsg));
+      }, () => {
+        // onAlways (inner)
+        window.clearTimeout(timeout);
+      });
+    });
+  }, (that) => {
+    // onError (outer)
+    const errMsg = `${that.status} ${that.responseText}`;
+    reject(Error(errMsg));
+  }, () => {
+    // onAlways (outer)
+    window.clearTimeout(timeout);
+  });
+}
+
+</script>
+</body>
+</html>
