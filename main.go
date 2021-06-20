@@ -17,6 +17,7 @@ func main() {
 	api.POST("/create-my-island", createMyIsland)
 	api.GET("/my-messages", myMessages)
 	api.POST("/post-message", postMessage)
+	api.GET("/publish-newsletter", publishNewsletter)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

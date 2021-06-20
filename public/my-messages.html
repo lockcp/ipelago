@@ -73,10 +73,16 @@ const MsgPostArea = cc('div', null, [
 
 const MoreBtn = cc('button');
 const PublishBtn = cc('button');
+const SubmitAlerts = CreateAlerts();
 
 const SubmitBtnArea = cc('p', null, [
-  m(MoreBtn),
-  m(PublishBtn),
+  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}),
+  m(PublishBtn).text('Publish').addClass('btn btn-secondary ms-1').attr({type:'button'}).click(() => {
+    ajax({method:'GET',url:'/api/publish-newsletter',alerts:SubmitAlerts,buttonID:PublishBtn.id},
+        () => {
+          window.location = '/public/publish.html';
+        });
+  }),
 ]);
 
 $('#root').append([
@@ -85,6 +91,8 @@ $('#root').append([
   m(MsgPostArea).hide(),
   m(Alerts).addClass('my-3'),
   m(MsgList),
+  m(SubmitAlerts),
+  m(SubmitBtnArea).addClass('text-center my-5').hide(),
 ]);
 
 init();
@@ -97,6 +105,7 @@ function init() {
           return;
         }
         $(MsgPostArea.id).show();
+        $(SubmitBtnArea.id).show();
         window.setTimeout(() => { $(MsgInput.id).focus(); }, 500);
         MsgList.append(messages);
       }, null, () => {

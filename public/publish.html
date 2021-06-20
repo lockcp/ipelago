@@ -11,6 +11,7 @@
   <script src="/public/asset/jquery.min.js"></script>
   <script src="/public/asset/dayjs.min.js"></script>
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/clipboard.min.js"></script>
   <script src="/public/asset/util.js"></script>
   
   <title>Publish - iPelago</title>
@@ -25,35 +26,49 @@ const Alerts = CreateAlerts();
 
 const title = m('h1').attr({id:'title'}).text('Publish').addClass('display-6 my-5');
 
+const CopyBtn = cc('button', 'copy');
+const DownloadBtn = cc('a');
+const ButtonsArea = cc('div', null, [
+  m(CopyBtn).text('Copy').addClass('btn btn-outline-primary').attr({type:'button'}),
+  m(DownloadBtn).text('Download').addClass('btn btn-outline-primary ms-2')
+    .attr({type:'button',download:'newsletter.json',href:'/public/newsletter.json'}),
+]);
+
+const Newsletter = cc('textarea');
+
 $('#root').append([
   title,
   m(Loading),
-  m(Form).addClass('mt-5').hide(),
+  m(ButtonsArea).hide(),
+  m(Newsletter).addClass('mt-3 form-control').hide(),
   m(Alerts).addClass('my-3'),
-  m(SubmitBtnArea).addClass('text-center my-5'),
 ]);
 
 init();
 
 function init() {
-  ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
-      (island) => {
-        $('#title').text('我的小岛');
-        $(MsgBtn.id).show();
-        $(Form.id).show();
-        if (island.ID) {
-          $(UpdateBtn.id).show();
-          $(NameInput.id).val(island.Name);
-          $(EmailInput.id).val(island.Email);
-          $(AvatarInput.id).val(island.Avatar);
-          $(LinkInput.id).val(island.Link);
-        } else {
-          $(CreateBtn.id).show();
-        }
+  ajax({method:'GET',url:'/public/newsletter.json',alerts:Alerts,responseType:'text'},
+      (newsletter) => {
+        $(ButtonsArea.id).show();
+        $(Newsletter.id).show().val(newsletter)
+          .css('height', $(Newsletter.id).prop('scrollHeight'))
+          .prop({disabled:true});
       }, null, () => {
         $(Loading.id).hide();
       });
 }
+
+const clipboard = new ClipboardJS(CopyBtn.id, {
+  text: () => { return $(Newsletter.id).val(); }
+});
+clipboard.on('success', () => {
+  $(CopyBtn.id).text('copied').removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+});
+clipboard.on('error', e => {
+  console.error('Action:', e.action);
+  console.error('Trigger:', e.trigger);
+  Alerts.insert('danger', '复制失败，详细信息见控制台');
+});
 
 </script>
 </body>

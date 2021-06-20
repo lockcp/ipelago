@@ -19,6 +19,19 @@ const (
 	Down    Status = "down"
 )
 
+type Newsletter struct {
+	Name     string       `json:"name"`
+	Email    string       `json:"email"`
+	Avatar   string       `json:"avatar"`
+	Link     string       `json:"link"`
+	Messages []*SimpleMsg `json:"messages"`
+}
+
+type SimpleMsg struct {
+	Time int64  `json:"time"`
+	Body string `json:"body"`
+}
+
 type Island struct {
 	ID      string  // primary key
 	Name    string  // 岛名

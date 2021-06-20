@@ -12,15 +12,14 @@ import (
 const OK = http.StatusOK
 
 const (
-	dbFileName = "ipelago.db"
-	REQUIRE    = "REQUIRE.md"
+	dbFileName     = "ipelago.db"
+	REQUIRE        = "REQUIRE.md"
+	newsletterPath = "public/newsletter.json"
 )
 
 type (
 	Island = model.Island
 )
-
-var myIsland Island
 
 var (
 	db   = new(database.DB)
@@ -33,10 +32,4 @@ func init() {
 	}
 	flag.Parse()
 	util.Panic(db.Open(dbFileName))
-	util.Panic(restoreMyIsland())
-}
-
-func restoreMyIsland() (err error) {
-	myIsland, err = db.MyIsland()
-	return
 }

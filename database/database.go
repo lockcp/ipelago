@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"os"
 
 	"github.com/ahui2016/ipelago/model"
 	"github.com/ahui2016/ipelago/stmt"
@@ -12,8 +13,10 @@ import (
 const MyIslandID = "My-Island-ID"
 
 type (
-	Island  = model.Island
-	Message = model.Message
+	Island     = model.Island
+	Message    = model.Message
+	SimpleMsg  = model.SimpleMsg
+	Newsletter = model.Newsletter
 )
 
 type DB struct {
@@ -85,4 +88,18 @@ func (db *DB) InsertMessage(msg *Message, id string) error {
 	}
 
 	return tx.Commit()
+}
+
+func (db *DB) PublishNewsletter(filePath string) error {
+	newsletter, err := getNewsletter(db.DB)
+	if err != nil {
+		return err
+	}
+	for length := len(newsletter); length >= model.MsgSizeLimit; {
+		newsletter, err = newsletterHalf(newsletter)
+		if err != nil {
+			return err
+		}
+	}
+	return os.WriteFile(filePath, newsletter, 0644)
 }

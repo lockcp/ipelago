@@ -2,9 +2,11 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/ahui2016/ipelago/model"
 	"github.com/ahui2016/ipelago/stmt"
 	"github.com/ahui2016/ipelago/util"
 )
@@ -54,6 +56,14 @@ func scanMessage(row Row) (msg Message, err error) {
 		&msg.At,
 		&msg.Body,
 		&msg.MD,
+	)
+	return
+}
+
+func scanSimpleMsg(row Row) (msg SimpleMsg, err error) {
+	err = row.Scan(
+		&msg.Time,
+		&msg.Body,
 	)
 	return
 }
@@ -145,7 +155,54 @@ func getMessages(tx TX, query string, args ...interface{}) (messages []*Message,
 	return
 }
 
-func getNextMsg(tx TX, datetime int64) (msg Message, err error) {
+func getNextMsg(tx TX, datetime int64) (msg SimpleMsg, err error) {
 	row := tx.QueryRow(stmt.GetNextMessage, MyIslandID, datetime)
-	return scanMessage(row)
+	return scanSimpleMsg(row)
+}
+
+func publishMessages(tx TX) (messages []*SimpleMsg, err error) {
+	totalSize := 0
+	nextTime := util.TimeNow()
+	for {
+		msg, err := getNextMsg(tx, nextTime)
+		if err == sql.ErrNoRows {
+			break
+		}
+		if err != nil {
+			return nil, err
+		}
+		totalSize += len(msg.Body)
+		if totalSize > model.MsgSizeLimitBase {
+			break
+		}
+		messages = append(messages, &msg)
+		nextTime = msg.Time
+	}
+	return
+}
+
+func getNewsletter(tx TX) ([]byte, error) {
+	myIsland, e1 := getIslandByID(tx, MyIslandID)
+	messages, e2 := publishMessages(tx)
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return nil, err
+	}
+	newsletter := Newsletter{
+		Name:     myIsland.Name,
+		Email:    myIsland.Email,
+		Avatar:   myIsland.Avatar,
+		Link:     myIsland.Link,
+		Messages: messages,
+	}
+	return json.MarshalIndent(newsletter, "", "  ")
+}
+
+func newsletterHalf(data []byte) ([]byte, error) {
+	var newsletter Newsletter
+	if err := json.Unmarshal(data, &newsletter); err != nil {
+		return nil, err
+	}
+	length := len(newsletter.Messages)
+	newsletter.Messages = newsletter.Messages[:length/2]
+	return json.MarshalIndent(newsletter, "", "  ")
 }

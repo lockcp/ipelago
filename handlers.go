@@ -22,6 +22,10 @@ func errorHandler(err error, c echo.Context) {
 }
 
 func getMyIsland(c echo.Context) error {
+	myIsland, err := db.MyIsland()
+	if err != nil {
+		return err
+	}
 	return c.JSON(OK, myIsland)
 }
 
@@ -41,10 +45,7 @@ func createMyIsland(c echo.Context) error {
 		Avatar: avatar,
 		Link:   link,
 	}
-	if err := db.CreateMyIsland(island); err != nil {
-		return err
-	}
-	return restoreMyIsland()
+	return db.CreateMyIsland(island)
 }
 
 func myMessages(c echo.Context) error {
@@ -65,6 +66,10 @@ func postMessage(c echo.Context) error {
 		return err
 	}
 	return c.JSON(OK, msg.ID)
+}
+
+func publishNewsletter(c echo.Context) error {
+	return db.PublishNewsletter(newsletterPath)
 }
 
 // getFormValue gets the c.FormValue(key), trims its spaces,

@@ -78,10 +78,10 @@ const GetIslandMessages = `
     WHERE island.id=? ORDER BY message.time DESC;`
 
 const GetNextMessage = `
-    SELECT message.id, message.time, message.at, message.body, message.md
-    FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
+    SELECT message.time, message.body FROM island
+    INNER JOIN island_msg ON island.id = island_msg.island_id
     INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? AND message.time>? ORDER BY message.time DESC LIMIT 1;`
+    WHERE island.id=? AND message.time<? ORDER BY message.time DESC LIMIT 1;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status)
