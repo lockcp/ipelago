@@ -20,55 +20,95 @@
 
 <script>
 
+const Alerts = CreateAlerts();
+
+const title = m('h1').addClass('display-6 my-5').text('Follow Islands');
+
+const Logs = cc('ul');
+
+Logs.insert = (msgType, msg) => {
+  const time = dayjs().format('HH:mm:ss');
+  const item = m('li').addClass(`text-${msgType}`).text(`${time} ${msg}`);
+  $(Logs.id).prepend(item);
+}
+
+const SubmitBtn = cc('button');
+const Addresses = cc('textarea');
+const AddressesArea = cc('div', null, [
+  m('p').text('请把小岛地址粘贴到下面的文本框中，一行一个地址。然后点击 Submit 按钮。'),
+  m(Addresses).addClass('form-control').on('input', () => {
+    const self = $(Addresses.id);
+    self.css('height', self.prop('scrollHeight'));
+  }),
+  m('p').addClass('text-center my-3').append(
+    m(SubmitBtn).text('Submit').attr({type:'button'}).addClass('btn btn-primary')
+  ),
+]);
+
+$('#root').append([
+  title,
+  m(Alerts).addClass('my-3'),
+  m(AddressesArea),
+  m(Logs),
+]);
+
+init();
+
+function init() {
+  $(SubmitBtn.id).click(() => {
+    disable(SubmitBtn.id);
+
+    const addresses = $(Addresses.id).val().split('\n')
+      .map(item => item.trim())
+      .filter(item => item.length > 0);
+
+    followIslands(addresses);
+    // 在 followIslands 之后如果有代码，会立即执行，不会等待 followIslands。
+  });
+}
+
 async function followIslands(islands) {
   const failed = [];
-  for (const i=0; i<islands.length; i++) {
-    log('info', '正在尝试订阅: ' + islands[i]);
+  const n = islands.length;
+  for (let i=0; i<n; i++) {
+    Logs.insert('dark', '正在尝试订阅: ' + islands[i]);
     try {
       const name = await follow(islands[i]);
-      log('success', '订阅成功: ' + name);
+      Logs.insert('success', '订阅成功: ' + name);
     } catch (error) {
       failed.push(islands[i]);
-      log('danger', error.name + ': ' + error.message);
+      Logs.insert('danger', error.name + ': ' + error.message);
     }
   }
   if (failed.length > 0) {
-    $(IslandsInput.id).val(failed.join('\n'));
-    log('info', `操作结束，有 ${failed.length} 条订阅失败。`);
+    $(Addresses.id).val(failed.join('\n'));
+    Logs.insert('primary', `操作结束，共处理 ${n} 条，其中 ${failed.length} 条订阅失败。`);
   } else {
-    log('info', `操作结束，全部订阅成功。`);
+    $(Addresses.id).val('');
+    Logs.insert('primary', `操作结束，共 ${n} 个小岛全部订阅成功。`);
   }
+  enable(SubmitBtn.id);
 }
 
 function follow(islandAddr) {
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       reject(Error('timeout'));
-    }, 5000);
+    }, 10*1000);
 
-    // onSuccess (outer)
-    ajax({method:'GET',url:islandAddr,responseType:'text'}, (island) => {
-      const body = new FormData();
-      body.set('island', island);
-      ajax({method:'POST',url:'/api/follow-island',body:body}, () => {
-        // onSuccess (inner)
-        resolve(island.name);
-      }, (that) => {
-        // onError (inner)
-        const errMsg = `${that.status} ${that.responseText}`;
-        reject(Error(errMsg));
-      }, () => {
-        // onAlways (inner)
-        window.clearTimeout(timeout);
-      });
+    const body = new FormData();
+    body.set('address', islandAddr);
+    ajax({method:'POST',url:'/api/follow-island',body:body}, (name) => {
+      // onSuccess
+      resolve(name);
+    }, (that) => {
+      // onError
+      const errMsg = `${that.status} ${that.responseText}`;
+      reject(Error(errMsg));
+    }, () => {
+      // onAlways
+      window.clearTimeout(timeout);
     });
-  }, (that) => {
-    // onError (outer)
-    const errMsg = `${that.status} ${that.responseText}`;
-    reject(Error(errMsg));
-  }, () => {
-    // onAlways (outer)
-    window.clearTimeout(timeout);
   });
 }
 

@@ -18,6 +18,7 @@ func main() {
 	api.GET("/my-messages", myMessages)
 	api.POST("/post-message", postMessage)
 	api.GET("/publish-newsletter", publishNewsletter)
+	api.POST("/follow-island", followIsland)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

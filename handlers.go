@@ -1,10 +1,16 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/ahui2016/ipelago/database"
+	"github.com/ahui2016/ipelago/model"
+	"github.com/ahui2016/ipelago/util"
 	"github.com/labstack/echo/v4"
 )
 
@@ -70,6 +76,45 @@ func postMessage(c echo.Context) error {
 
 func publishNewsletter(c echo.Context) error {
 	return db.PublishNewsletter(newsletterPath)
+}
+
+func followIsland(c echo.Context) (err error) {
+	address := c.FormValue("address")
+	done := make(chan bool, 1)
+
+	var res *http.Response
+	go func() {
+		res, err = http.Get(address)
+		done <- true
+	}()
+
+	var blob []byte
+	select {
+	case <-done:
+		if err != nil { // 注意这个 err 是最外层那个 err
+			return
+		}
+		defer res.Body.Close()
+
+		blob, err = io.ReadAll(
+			io.LimitReader(res.Body, model.MsgSizeLimit+model.KB))
+		if err != nil {
+			return
+		}
+		if err = util.CheckStringSize(string(blob), model.MsgSizeLimit); err != nil {
+			return fmt.Errorf("the size exceeds the limit (15KB)")
+		}
+		var island model.Newsletter
+		if err = json.Unmarshal(blob, &island); err != nil {
+			return
+		}
+		if err := db.InsertIsland(address, &island); err != nil {
+			return err
+		}
+		return c.JSON(OK, island.Name)
+	case <-time.After(5 * time.Second):
+		return fmt.Errorf("timeout")
+	}
 }
 
 // getFormValue gets the c.FormValue(key), trims its spaces,

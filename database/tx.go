@@ -74,7 +74,7 @@ func getIslandByID(tx TX, id string) (island Island, err error) {
 		return
 	}
 	row = tx.QueryRow(stmt.GetLastMessage, id)
-	island.Message, err = scanMessage(row)
+	island.Message, err = scanSimpleMsg(row)
 	return
 }
 
@@ -155,8 +155,12 @@ func getMessages(tx TX, query string, args ...interface{}) (messages []*Message,
 	return
 }
 
-func getNextMsg(tx TX, datetime int64) (msg SimpleMsg, err error) {
-	row := tx.QueryRow(stmt.GetNextMessage, MyIslandID, datetime)
+func getLastMsg(tx TX, id string) (SimpleMsg, error) {
+	return getNextMsg(tx, id, util.TimeNow())
+}
+
+func getNextMsg(tx TX, id string, datetime int64) (SimpleMsg, error) {
+	row := tx.QueryRow(stmt.GetNextMessage, id, datetime)
 	return scanSimpleMsg(row)
 }
 
@@ -164,7 +168,7 @@ func publishMessages(tx TX) (messages []*SimpleMsg, err error) {
 	totalSize := 0
 	nextTime := util.TimeNow()
 	for {
-		msg, err := getNextMsg(tx, nextTime)
+		msg, err := getNextMsg(tx, MyIslandID, nextTime)
 		if err == sql.ErrNoRows {
 			break
 		}
@@ -205,4 +209,21 @@ func newsletterHalf(data []byte) ([]byte, error) {
 	length := len(newsletter.Messages)
 	newsletter.Messages = newsletter.Messages[:length/2]
 	return json.MarshalIndent(newsletter, "", "  ")
+}
+
+func insertMessages(tx TX, id string, messages []*SimpleMsg) error {
+	lastMsg, err := getLastMsg(tx, id)
+	if err != nil {
+		return err
+	}
+	for i := range messages {
+		msg := messages[i].ToMessage()
+		if msg.Time <= lastMsg.Time {
+			break
+		}
+		if err := insertMsg(tx, msg, id); err != nil {
+			return err
+		}
+	}
+	return nil
 }

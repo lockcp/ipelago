@@ -103,3 +103,21 @@ func (db *DB) PublishNewsletter(filePath string) error {
 	}
 	return os.WriteFile(filePath, newsletter, 0644)
 }
+
+func (db *DB) InsertIsland(addr string, nl *Newsletter) error {
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	if err := nl.Trim().Check(); err != nil {
+		return err
+	}
+	island := model.NewIsland(addr, nl)
+	if err := insertIsland(tx, island); err != nil {
+		return err
+	}
+	if err := insertMessages(tx, island.ID, nl.Messages); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
