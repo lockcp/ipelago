@@ -73,8 +73,7 @@ func getIslandByID(tx TX, id string) (island Island, err error) {
 	if island, err = scanIsland(row); err != nil {
 		return
 	}
-	row = tx.QueryRow(stmt.GetLastMessage, id)
-	island.Message, err = scanSimpleMsg(row)
+	island.Message, err = getLastMsg(tx, id)
 	return
 }
 
@@ -155,8 +154,17 @@ func getMessages(tx TX, query string, args ...interface{}) (messages []*Message,
 	return
 }
 
-func getLastMsg(tx TX, id string) (SimpleMsg, error) {
-	return getNextMsg(tx, id, util.TimeNow())
+func getLastMsg(tx TX, id string) (msg SimpleMsg, err error) {
+	msg, err = getNextMsg(tx, id, util.TimeNow())
+	if err != nil {
+		return
+	}
+	oldLength := len(msg.Body)
+	msg.Body = util.StringLimit(msg.Body, 128) // 128 bytes
+	if oldLength != len(msg.Body) {
+		msg.Body += "......"
+	}
+	return
 }
 
 func getNextMsg(tx TX, id string, datetime int64) (SimpleMsg, error) {
@@ -212,13 +220,20 @@ func newsletterHalf(data []byte) ([]byte, error) {
 }
 
 func insertMessages(tx TX, id string, messages []*SimpleMsg) error {
+	lastTime := util.TimeNow()
 	lastMsg, err := getLastMsg(tx, id)
+
+	if err == sql.ErrNoRows {
+		lastTime = lastMsg.Time
+		err = nil
+	}
 	if err != nil {
 		return err
 	}
+
 	for i := range messages {
 		msg := messages[i].ToMessage()
-		if msg.Time <= lastMsg.Time {
+		if msg.Time <= lastTime {
 			break
 		}
 		if err := insertMsg(tx, msg, id); err != nil {

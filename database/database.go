@@ -52,8 +52,11 @@ func (db *DB) CreateMyIsland(island Island) error {
 	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
-
 	return tx.Commit()
+}
+
+func (db *DB) UpdateMyIsland(island Island) error {
+	return updateIsland(db.DB, island)
 }
 
 func (db *DB) MyIsland() (Island, error) {
@@ -62,6 +65,25 @@ func (db *DB) MyIsland() (Island, error) {
 		err = nil
 	}
 	return island, err
+}
+
+func (db *DB) AllIslands() (islands []*Island, err error) {
+	rows, err := db.DB.Query(stmt.AllIslands, MyIslandID)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		island, err := scanIsland(rows)
+		if err != nil {
+			return nil, err
+		}
+		if island.Message, err = getLastMsg(db.DB, island.ID); err != nil {
+			return nil, err
+		}
+		islands = append(islands, &island)
+	}
+	return islands, rows.Err()
 }
 
 func (db *DB) IslandMessages(id string) (messages []*Message, err error) {

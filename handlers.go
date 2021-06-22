@@ -35,23 +35,28 @@ func getMyIsland(c echo.Context) error {
 	return c.JSON(OK, myIsland)
 }
 
-func createMyIsland(c echo.Context) error {
-	name, err := getFormValue(c, "name")
+func allIslands(c echo.Context) error {
+	islands, err := db.AllIslands()
 	if err != nil {
 		return err
 	}
-	email := strings.TrimSpace((c.FormValue("email")))
-	avatar := strings.TrimSpace(c.FormValue("avatar"))
-	link := strings.TrimSpace(c.FormValue("link"))
+	return c.JSON(OK, islands)
+}
 
-	island := Island{
-		ID:     database.MyIslandID,
-		Name:   name,
-		Email:  email,
-		Avatar: avatar,
-		Link:   link,
+func createMyIsland(c echo.Context) error {
+	island, err := getFormMyIsland(c)
+	if err != nil {
+		return err
 	}
 	return db.CreateMyIsland(island)
+}
+
+func updateMyIsland(c echo.Context) error {
+	island, err := getFormMyIsland(c)
+	if err != nil {
+		return err
+	}
+	return db.UpdateMyIsland(island)
 }
 
 func myMessages(c echo.Context) error {
@@ -125,4 +130,23 @@ func getFormValue(c echo.Context, key string) (string, error) {
 		return "", fmt.Errorf("form value [%s] is empty", key)
 	}
 	return value, nil
+}
+
+func getFormMyIsland(c echo.Context) (island Island, err error) {
+	name, err := getFormValue(c, "name")
+	if err != nil {
+		return
+	}
+	email := strings.TrimSpace((c.FormValue("email")))
+	avatar := strings.TrimSpace(c.FormValue("avatar"))
+	link := strings.TrimSpace(c.FormValue("link"))
+
+	island = Island{
+		ID:     database.MyIslandID,
+		Name:   name,
+		Email:  email,
+		Avatar: avatar,
+		Link:   link,
+	}
+	return
 }

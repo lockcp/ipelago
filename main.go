@@ -15,10 +15,12 @@ func main() {
 	api := e.Group("/api", sleep)
 	api.GET("/get-my-island", getMyIsland)
 	api.POST("/create-my-island", createMyIsland)
+	api.POST("/update-my-island", updateMyIsland)
 	api.GET("/my-messages", myMessages)
 	api.POST("/post-message", postMessage)
 	api.GET("/publish-newsletter", publishNewsletter)
 	api.POST("/follow-island", followIsland)
+	api.GET("/all-islands", allIslands)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

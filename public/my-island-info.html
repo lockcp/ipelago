@@ -61,11 +61,7 @@ const MsgBtn = cc('a');
 const SubmitBtnArea = cc('p', null, [
   m(CreateBtn).text('Create').addClass('btn btn-primary').attr({type:'button'})
     .hide().click(() => {
-      const body = new FormData();
-      body.set('name', $(NameInput.id).val());
-      body.set('email', $(EmailInput.id).val());
-      body.set('avatar', $(AvatarInput.id).val());
-      body.set('link', $(LinkInput.id).val());
+      const body = newIslandForm();
       ajax({method:'POST',url:'/api/create-my-island',alerts:Alerts,buttonID:CreateBtn.id,body:body},
           () => {
             Alerts.insert('success', '建岛成功');
@@ -73,7 +69,14 @@ const SubmitBtnArea = cc('p', null, [
             $(UpdateBtn.id).show();
           });
   }),
-  m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'}).hide(),
+  m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'})
+    .hide().click(() => {
+      const body = newIslandForm();
+      ajax({method:'POST',url:'/api/update-my-island',alerts:Alerts,buttonID:UpdateBtn.id,body:body},
+          () => {
+            Alerts.insert('success', '更新成功');
+          });
+    }),
   m(MsgBtn).text('Messages').addClass('btn btn-secondary ms-1')
     .attr({type:'button',href:'/public/my-messages.html'}).hide(),
 ]);
@@ -106,6 +109,15 @@ function init() {
       }, null, () => {
         $(Loading.id).hide();
       });
+}
+
+function newIslandForm() {
+  const body = new FormData();
+  body.set('name', $(NameInput.id).val());
+  body.set('email', $(EmailInput.id).val());
+  body.set('avatar', $(AvatarInput.id).val());
+  body.set('link', $(LinkInput.id).val());
+  return body;
 }
 
 </script>

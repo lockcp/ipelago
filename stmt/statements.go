@@ -65,11 +65,9 @@ const GetIslandByID = `
     SELECT id, name, email, avatar, link, address, note, status
     FROM island WHERE id=?;`
 
-const GetLastMessage = `
-    SELECT message.id, message.time, message.at, message.body, message.md
-    FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
-    INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? ORDER BY message.time DESC LIMIT 1;`
+const AllIslands = `
+    SELECT id, name, email, avatar, link, address, note, status
+    FROM island WHERE id<>? ORDER BY id DESC;`
 
 const GetIslandMessages = `
     SELECT message.id, message.time, message.at, message.body, message.md

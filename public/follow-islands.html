@@ -76,6 +76,10 @@ async function followIslands(islands) {
       const name = await follow(islands[i]);
       Logs.insert('success', '订阅成功: ' + name);
     } catch (error) {
+      if (error.message.indexOf("UNIQUE constraint failed: island.address") >= 0) {
+        // 忽略已订阅的小岛
+        continue;
+      }
       failed.push(islands[i]);
       Logs.insert('danger', error.name + ': ' + error.message);
     }
@@ -85,7 +89,7 @@ async function followIslands(islands) {
     Logs.insert('primary', `操作结束，共处理 ${n} 条，其中 ${failed.length} 条订阅失败。`);
   } else {
     $(Addresses.id).val('');
-    Logs.insert('primary', `操作结束，共 ${n} 个小岛全部订阅成功。`);
+    Logs.insert('primary', `操作结束，全部订阅成功。`);
   }
   enable(SubmitBtn.id);
 }

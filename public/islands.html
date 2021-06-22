@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>All Islands - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+const Loading = CreateLoading();
+const Alerts = CreateAlerts();
+
+const title = m('h1').addClass('display-6 my-5').text('Islands');
+
+const IslandList = cc('div');
+
+IslandList.append = (islands) => {
+  const islandPairs = pairs(islands); // 两个一行，为了方便先组对。
+  islandPairs.forEach(pair => {
+    const row = cc('div');
+    $(IslandList.id).append(m(row).addClass('row'));
+    pair.forEach(island => {
+      const item = IslandItem(island);
+      $(row.id).append(m('div').addClass('col-md my-1').append(m(item)));
+      item.init();
+    });
+  });
+};
+
+$('#root').append([
+  title,
+  m(Loading),
+  m(Alerts).addClass('my-3'),
+  m(IslandList),
+]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/all-islands',alerts:Alerts},
+      (islands) => {
+        IslandList.append(islands);
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
+
+function pairs(items) {
+  const itemPairs = [];
+  items.forEach( (e,i) => {
+    if (i%2==0) {
+      itemPairs.push([e])
+    } else {
+      itemPairs[itemPairs.length-1].push(e)
+    }
+  });
+  return itemPairs;
+}
+
+function itemID(id) {
+  return `i${id}`;
+}
+
+function IslandItem(island) {
+  let avatar = '/public/avatars/default.jpg';
+  if (island.Avatar) {
+    avatar = island.Avatar;
+  }
+  const datetime = dayjs.unix(island.Message.time).format('YYYY-MM-DD HH:mm:ss');
+  const Alerts = CreateAlerts(); // TODO: 考虑删除Alerts
+  const self = cc('div', itemID(island.ID))
+
+  self.view = () => m('div').attr({id:self.raw_id}).addClass('card').append([
+    m('div').addClass('card-body').append([
+      m('ul').addClass('list-group list-group-flush').append([
+        m('li').addClass('list-group-item d-flex justify-content-start align-items-start mb-1').append([
+          m('img').addClass('Avatar').attr({src:avatar,alt:'avatar'}),
+          m('div').addClass('ms-3').append([
+            m('p').addClass('CardTitle').append(m('strong').text(island.Name)),
+            m(Alerts),
+          ]),
+        ]),
+        m('li').addClass('list-group-item mb-1').append([
+          m('div').addClass('Datetime small').append(
+            m('span').addClass('text-muted').text(datetime)
+          ),
+          m('span').addClass('small').text(island.Message.body),
+        ]),
+      ]),
+      m(Alerts), // TODO: 考虑删除Alerts
+    ]),
+  ]);
+
+  self.init = () => {
+    if (island.Email) {
+      $(self.id).find('.CardTitle').append([
+        m('span').addClass('small text-muted').text(` (${island.Email})`),
+      ]);
+    }
+    if (island.Note) {
+      $(self.id).find('.CardTitle').append([
+        m('br'),
+        m('span').addClass('small text-muted').text(island.island.Note),
+      ]);
+    }
+    if (island.Link) {
+      $(self.id).find('.CardTitle').append([
+        m('br'),
+        m('a').addClass('small').text(island.Link).attr({href:island.Link}),
+      ]);
+    }
+    if (island.Status == 'alive') {
+      $(self.id).find('.Datetime').append([
+        ' ',
+        m('span').text('Alive').addClass('badge bg-success')
+      ]);
+    }
+  };
+
+  return self;
+}
+</script>
+</body>
+</html>
