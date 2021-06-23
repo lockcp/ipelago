@@ -12,6 +12,8 @@ import (
 
 const MyIslandID = "My-Island-ID"
 
+const OnePage = 10 // 每一页有多少条消息。
+
 type (
 	Island     = model.Island
 	Message    = model.Message
@@ -60,11 +62,19 @@ func (db *DB) UpdateMyIsland(island Island) error {
 }
 
 func (db *DB) MyIsland() (Island, error) {
-	island, err := getIslandByID(db.DB, MyIslandID)
+	return db.GetIslandByID(MyIslandID)
+}
+
+func (db *DB) GetIslandByID(id string) (Island, error) {
+	island, err := getIslandByID(db.DB, id)
 	if err == sql.ErrNoRows {
 		err = nil
 	}
 	return island, err
+}
+
+func (db *DB) GetIslandWithoutMsg(id string) (Island, error) {
+	return getIslandWithoutMsg(db.DB, id)
 }
 
 func (db *DB) AllIslands() (islands []*Island, err error) {
@@ -86,26 +96,27 @@ func (db *DB) AllIslands() (islands []*Island, err error) {
 	return islands, rows.Err()
 }
 
-func (db *DB) IslandMessages(id string) (messages []*Message, err error) {
-	return getMessages(db.DB, stmt.GetIslandMessages, id)
+func (db *DB) MoreIslandMessages(id string, datetime int64) (messages []*Message, err error) {
+	return getMessages(db.DB, stmt.GetMoreMessagesByIsland,
+		id, datetime, OnePage)
 }
 
 func (db *DB) PostMyMsg(body string) (*Message, error) {
 	if err := util.CheckStringSize(body, model.KB); err != nil {
 		return nil, err
 	}
-	msg := model.NewMessage(body)
-	if err := db.InsertMessage(msg, MyIslandID); err != nil {
+	msg := model.NewMessage(MyIslandID, body)
+	if err := db.InsertMessage(msg); err != nil {
 		return nil, err
 	}
 	return msg, nil
 }
 
-func (db *DB) InsertMessage(msg *Message, id string) error {
+func (db *DB) InsertMessage(msg *Message) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
-	if err := insertMsg(tx, msg, id); err != nil {
+	if err := insertMsg(tx, msg); err != nil {
 		return err
 	}
 

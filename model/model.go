@@ -74,11 +74,12 @@ type SimpleMsg struct {
 	Body string `json:"body"`
 }
 
-func (msg *SimpleMsg) ToMessage() *Message {
+func (msg *SimpleMsg) ToMessage(islandID string) *Message {
 	return &Message{
-		ID:   util.RandomID(),
-		Time: msg.Time,
-		Body: msg.Body,
+		ID:       util.RandomID(),
+		IslandID: islandID,
+		Time:     msg.Time,
+		Body:     msg.Body,
 	}
 }
 
@@ -107,18 +108,25 @@ func NewIsland(addr string, nl *Newsletter) Island {
 }
 
 type Message struct {
-	ID   string
-	Time int64
-	At   string // 用于互相 @, 暂不启用
-	Body string
-	MD   bool // 用于 markdown, 暂不启用
+	ID       string
+	IslandID string
+	Time     int64
+	Body     string
 }
 
-func NewMessage(body string) *Message {
+func NewMessage(islandID, body string) *Message {
 	return &Message{
-		ID:   util.RandomID(),
-		Time: util.TimeNow(),
-		Body: body,
+		ID:       util.RandomID(),
+		IslandID: islandID,
+		Time:     util.TimeNow(),
+		Body:     body,
+	}
+}
+
+func (msg *Message) ToSimple() *SimpleMsg {
+	return &SimpleMsg{
+		Time: msg.Time,
+		Body: msg.Body,
 	}
 }
 

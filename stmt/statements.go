@@ -29,22 +29,14 @@ CREATE TABLE IF NOT EXISTS island_cluster
 
 CREATE TABLE IF NOT EXISTS message
 (
-  id       text    PRIMARY KEY,
-  time     int     NOT NULL,
-  at       text    NOT NULL,
-  body     text    NOT NULL,
-  md       int     NOT NULL
+  id           text    PRIMARY KEY,
+  island_id    text    REFERENCES island(id) ON DELETE CASCADE,
+  time         int     NOT NULL,
+  body         text    NOT NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_message_time ON message(time);
 CREATE INDEX IF NOT EXISTS idx_message_id_time ON message(id, time);
-
-CREATE TABLE IF NOT EXISTS island_msg
-(
-  island_id    text    REFERENCES island(id) ON DELETE CASCADE,
-  msg_id       text    REFERENCES message(id) ON DELETE CASCADE,
-  UNIQUE (island_id, msg_id)
-);
 
 CREATE TABLE IF NOT EXISTS metadata
 (
@@ -69,17 +61,13 @@ const AllIslands = `
     SELECT id, name, email, avatar, link, address, note, status
     FROM island WHERE id<>? ORDER BY id DESC;`
 
-const GetIslandMessages = `
-    SELECT message.id, message.time, message.at, message.body, message.md
-    FROM island INNER JOIN island_msg ON island.id = island_msg.island_id
-    INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? ORDER BY message.time DESC;`
+const GetMoreMessagesByIsland = `
+    SELECT id, island_id, time, body FROM message
+    WHERE island_id=? AND time<? ORDER BY time DESC LIMIT ?;`
 
-const GetNextMessage = `
-    SELECT message.time, message.body FROM island
-    INNER JOIN island_msg ON island.id = island_msg.island_id
-    INNER JOIN message ON island_msg.msg_id = message.id
-    WHERE island.id=? AND message.time<? ORDER BY message.time DESC LIMIT 1;`
+const GetMoreMessages = `
+    SELECT id, island_id, time, body FROM message
+    WHERE time<? ORDER BY time DESC LIMIT ?;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status)
@@ -91,8 +79,5 @@ const UpdateIsland = `
     WHERE id=?;`
 
 const InsertMsg = `
-    INSERT INTO message (id, time, at, body, md)
-    VALUES (?, ?, ?, ?, ?);`
-
-const InsertIslandMsg = `
-    INSERT INTO island_msg (island_id, msg_id) VALUES (?, ?);`
+    INSERT INTO message (id, island_id, time, body)
+    VALUES (?, ?, ?, ?);`

@@ -52,25 +52,20 @@ func scanIsland(row Row) (island Island, err error) {
 func scanMessage(row Row) (msg Message, err error) {
 	err = row.Scan(
 		&msg.ID,
+		&msg.IslandID,
 		&msg.Time,
-		&msg.At,
 		&msg.Body,
-		&msg.MD,
 	)
 	return
 }
 
-func scanSimpleMsg(row Row) (msg SimpleMsg, err error) {
-	err = row.Scan(
-		&msg.Time,
-		&msg.Body,
-	)
-	return
+func getIslandWithoutMsg(tx TX, id string) (island Island, err error) {
+	row := tx.QueryRow(stmt.GetIslandByID, id)
+	return scanIsland(row)
 }
 
 func getIslandByID(tx TX, id string) (island Island, err error) {
-	row := tx.QueryRow(stmt.GetIslandByID, id)
-	if island, err = scanIsland(row); err != nil {
+	if island, err = getIslandWithoutMsg(tx, id); err != nil {
 		return
 	}
 	island.Message, err = getLastMsg(tx, id)
@@ -107,21 +102,15 @@ func insertIsland(tx TX, island Island) error {
 	return err
 }
 
-func insertMsg(tx TX, msg *Message, islandID string) error {
-	_, e1 := tx.Exec(
+func insertMsg(tx TX, msg *Message) error {
+	_, err := tx.Exec(
 		stmt.InsertMsg,
 		msg.ID,
+		msg.IslandID,
 		msg.Time,
-		msg.At,
 		msg.Body,
-		msg.MD,
 	)
-	_, e2 := tx.Exec(
-		stmt.InsertIslandMsg,
-		islandID,
-		msg.ID,
-	)
-	return util.WrapErrors(e1, e2)
+	return err
 }
 
 // insertFirstMsg 插入每个小岛被建立时的第一条消息。
@@ -130,11 +119,12 @@ func insertFirsstMsg(tx TX, name string) error {
 	datetime := now.Format("2006年1月2日")
 	body := fmt.Sprintf("%s创建于%s", name, datetime)
 	msg := &Message{
-		ID:   util.RandomID(),
-		Time: now.Unix(),
-		Body: body,
+		ID:       util.RandomID(),
+		IslandID: MyIslandID,
+		Time:     now.Unix(),
+		Body:     body,
 	}
-	return insertMsg(tx, msg, MyIslandID)
+	return insertMsg(tx, msg)
 }
 
 func getMessages(tx TX, query string, args ...interface{}) (messages []*Message, err error) {
@@ -168,8 +158,10 @@ func getLastMsg(tx TX, id string) (msg SimpleMsg, err error) {
 }
 
 func getNextMsg(tx TX, id string, datetime int64) (SimpleMsg, error) {
-	row := tx.QueryRow(stmt.GetNextMessage, id, datetime)
-	return scanSimpleMsg(row)
+	row := tx.QueryRow(stmt.GetMoreMessagesByIsland, id, datetime, 1)
+	msg, err := scanMessage(row)
+	simple := msg.ToSimple()
+	return *simple, err
 }
 
 func publishMessages(tx TX) (messages []*SimpleMsg, err error) {
@@ -232,11 +224,11 @@ func insertMessages(tx TX, id string, messages []*SimpleMsg) error {
 	}
 
 	for i := range messages {
-		msg := messages[i].ToMessage()
+		msg := messages[i].ToMessage(id)
 		if msg.Time <= lastTime {
 			break
 		}
-		if err := insertMsg(tx, msg, id); err != nil {
+		if err := insertMsg(tx, msg); err != nil {
 			return err
 		}
 	}

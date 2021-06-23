@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>Timeline - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+const allIslands = new Map();
+
+const Loading = CreateLoading();
+const Alerts = CreateAlerts();
+
+const title = m('h1').addClass('display-6 my-5').text('Timeline');
+
+const MsgList = cc('ul');
+
+MsgList.view = () => m('ul')
+  .attr({id:MsgList.raw_id}).addClass('list-group list-group-flush');
+
+MsgList.append = (messages) => {
+  messages.forEach((msg) => {
+    const item = MsgItem(msg);
+    $(MsgList.id).append(m(item));
+    item.init();
+  });
+};
+
+$('#root').append([
+  title,
+  m(Alerts),
+  m(MsgList),
+]);
+
+function itemID(id) {
+  return `i${id}`;
+}
+
+function MsgItem(msg) {
+  const ItemAlerts = CreateAlerts();
+  const datetime = dayjs.unix(msg.Time).format('YYYY-MM-DD HH:mm:ss');
+  const self = cc('div', itemID(msg.ID))
+  self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
+    m('img').addClass('Avatar'),
+    m('div').addClass('ms-3').append([
+      m('p').addClass('Name'),
+      m('span').addClass('Contents').text(msg.Body),
+      m('div').addClass('Datetime small text-muted text-end').text(datetime),
+      m(Alerts),
+    ]),
+  ]);
+
+  self.init = () => {
+    const island = await getIsland(msg.IslandID, ItemAlerts);
+    let avatar = '/public/avatars/default.jpg';
+    if (island.Avatar) {
+      avatar = island.Avatar;
+    }
+    $(self.id).find('.Avatar').attr({src:avatar});
+    $(self.id).find('.Name').append( m('strong').text(island.Name) );
+    if (island.Email) {
+      $(self.id).find('.Name').append([
+        m('span').addClass('small text-muted').text(` (${island.Email})`),
+      ]);
+    }
+  };
+
+  return self;
+}
+
+async function getIsland(id, alerts) {
+  if (allIslands.has(id)) {
+    return allIslands.get(id);
+  }
+  try {
+    const island = await getIslandByID(id);
+    allIslands.set(id, island);
+    return island;
+  } catch (err) {
+    alerts.insert('danger', err);
+  }
+}
+
+function getIslandByID(id) {
+  return new Promise((resolve, reject) => {
+    ajax({method:'GET',url:'/api/get-island/'+id},
+        (island) => {
+          resolve(island);
+        }, (that) => {
+          const errMsg = `${that.status} ${that.responseText}`;
+          reject(errMsg);
+        });
+  });
+}
+
+</script>
+</body>
+</html>

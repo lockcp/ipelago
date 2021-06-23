@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,6 +36,15 @@ func getMyIsland(c echo.Context) error {
 	return c.JSON(OK, myIsland)
 }
 
+func getIslandWithoutMsg(c echo.Context) error {
+	id := c.Param("id")
+	island, err := db.GetIslandWithoutMsg(id)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, island)
+}
+
 func allIslands(c echo.Context) error {
 	islands, err := db.AllIslands()
 	if err != nil {
@@ -59,8 +69,12 @@ func updateMyIsland(c echo.Context) error {
 	return db.UpdateMyIsland(island)
 }
 
-func myMessages(c echo.Context) error {
-	messages, err := db.IslandMessages(database.MyIslandID)
+func moreMyMessages(c echo.Context) error {
+	datetime, err := getTimestamp(c)
+	if err != nil {
+		return err
+	}
+	messages, err := db.MoreIslandMessages(database.MyIslandID, datetime)
 	if err != nil {
 		return err
 	}
@@ -130,6 +144,14 @@ func getFormValue(c echo.Context, key string) (string, error) {
 		return "", fmt.Errorf("form value [%s] is empty", key)
 	}
 	return value, nil
+}
+
+func getTimestamp(c echo.Context) (int64, error) {
+	s := c.QueryParam("time")
+	if s == "" {
+		return util.TimeNow(), nil
+	}
+	return strconv.ParseInt(s, 10, 0)
 }
 
 func getFormMyIsland(c echo.Context) (island Island, err error) {

@@ -40,7 +40,7 @@ MsgList.append = (messages) => {
 const MsgInput = cc('textarea');
 const PostBtn = cc('button');
 const MsgPostArea = cc('div', null, [
-  m(MsgInput).addClass('form-control').attr({rows:4}),
+  m(MsgInput).addClass('form-control'),
   m('p').addClass('text-end mt-2').append(
     m(PostBtn).text('Post').addClass('btn btn-outline-primary').attr({type:'button'}).click(() => {
       const msgBody = $(MsgInput.id).val().trim();
@@ -98,7 +98,7 @@ $('#root').append([
 init();
 
 function init() {
-  ajax({method:'GET',url:'/api/my-messages',alerts:Alerts},
+  ajax({method:'GET',url:'/api/more-my-messages',alerts:Alerts},
       (messages) => {
         if (!messages || messages.length == 0) {
           Alerts.insert('info', '没有任何消息，可能尚未建岛');

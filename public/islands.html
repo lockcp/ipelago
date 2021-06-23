@@ -28,6 +28,10 @@ const title = m('h1').addClass('display-6 my-5').text('Islands');
 const IslandList = cc('div');
 
 IslandList.append = (islands) => {
+  if (!islands || islands.length == 0) {
+    Alerts.insert('info', '尚未订阅任何岛');
+    return;
+  }
   const islandPairs = pairs(islands); // 两个一行，为了方便先组对。
   islandPairs.forEach(pair => {
     const row = cc('div');
