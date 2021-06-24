@@ -82,6 +82,20 @@ func moreMyMessages(c echo.Context) error {
 	return c.JSON(OK, messages)
 }
 
+// moreIslandMessages 获取指定小岛的更多消息。
+func moreIslandMessages(c echo.Context) error {
+	id := c.QueryParam("id")
+	datetime, err := getTimestamp(c)
+	if err != nil {
+		return err
+	}
+	messages, err := db.MoreIslandMessages(id, datetime)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, messages)
+}
+
 // moreMessages 获取全部小岛的更多消息。
 func moreMessages(c echo.Context) error {
 	datetime, err := getTimestamp(c)
@@ -148,6 +162,15 @@ func followIsland(c echo.Context) (err error) {
 	case <-time.After(5 * time.Second):
 		return fmt.Errorf("timeout")
 	}
+}
+
+func updateNote(c echo.Context) error {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	note := c.FormValue("note")
+	return db.UpdateNote(note, id)
 }
 
 // getFormValue gets the c.FormValue(key), trims its spaces,

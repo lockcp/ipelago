@@ -13,7 +13,7 @@
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
   <script src="/public/asset/util.js"></script>
   
-  <title>All Islands - iPelago</title>
+  <title>All Islands in iPelago</title>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
@@ -23,7 +23,7 @@
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').addClass('display-6 my-5').text('Islands');
+const title = m('h1').addClass('display-6 my-5').text('Islands in iPelago');
 
 const IslandList = cc('div');
 
@@ -38,7 +38,7 @@ IslandList.append = (islands) => {
     $(IslandList.id).append(m(row).addClass('row'));
     pair.forEach(island => {
       const item = IslandItem(island);
-      $(row.id).append(m('div').addClass('col-md my-1').append(m(item)));
+      $(row.id).append(m('div').addClass('col-md my-2').append(m(item)));
       item.init();
     });
   });
@@ -83,6 +83,7 @@ function IslandItem(island) {
   if (island.Avatar) {
     avatar = island.Avatar;
   }
+  const islandPage = '/public/island.html?id='+island.ID;
   const datetime = dayjs.unix(island.Message.time).format('YYYY-MM-DD HH:mm:ss');
   const Alerts = CreateAlerts(); // TODO: 考虑删除Alerts
   const self = cc('div', itemID(island.ID))
@@ -91,9 +92,13 @@ function IslandItem(island) {
     m('div').addClass('card-body').append([
       m('ul').addClass('list-group list-group-flush').append([
         m('li').addClass('list-group-item d-flex justify-content-start align-items-start mb-1').append([
-          m('img').addClass('Avatar').attr({src:avatar,alt:'avatar'}),
+          m('a').addClass('AvatarLink').attr({href:islandPage}).append(
+            m('img').addClass('Avatar').attr({src:avatar,alt:'avatar'})
+          ),
           m('div').addClass('ms-3').append([
-            m('p').addClass('CardTitle').append(m('strong').text(island.Name)),
+            m('p').addClass('CardTitle').append(
+              m('a').text(island.Name).attr({href:islandPage})
+                .addClass('text-decoration-none text-dark fw-bold')),
             m(Alerts),
           ]),
         ]),
@@ -109,33 +114,36 @@ function IslandItem(island) {
   ]);
 
   self.init = () => {
+    const cardTitle = $(self.id).find('.CardTitle');
     if (island.Email) {
-      $(self.id).find('.CardTitle').append([
+      cardTitle.append([
         m('span').addClass('small text-muted').text(` (${island.Email})`),
       ]);
     }
-    if (island.Note) {
-      $(self.id).find('.CardTitle').append([
-        m('br'),
-        m('span').addClass('small text-muted').text(island.island.Note),
-      ]);
-    }
     if (island.Link) {
-      $(self.id).find('.CardTitle').append([
+      cardTitle.append([
         m('br'),
         m('a').addClass('small').text(island.Link).attr({href:island.Link}),
       ]);
     }
-    if (island.Status == 'alive') {
+    if (!island.Note) {
+      island.Note = island.Address;
+    }
+    cardTitle.append([
+      m('br'),
+      m('span').addClass('small text-muted').text(island.Note),
+    ]);
+    if (island.Status) {
       $(self.id).find('.Datetime').append([
         ' ',
-        m('span').text('Alive').addClass('badge bg-success')
+        StatusElem(island.Status),
       ]);
     }
   };
 
   return self;
 }
+
 </script>
 </body>
 </html>

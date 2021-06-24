@@ -18,11 +18,13 @@ func main() {
 	api.POST("/create-my-island", createMyIsland)
 	api.POST("/update-my-island", updateMyIsland)
 	api.GET("/more-my-messages", moreMyMessages)
+	api.GET("/more-island-messages", moreIslandMessages)
 	api.GET("/more-messages", moreMessages)
 	api.POST("/post-message", postMessage)
 	api.GET("/publish-newsletter", publishNewsletter)
 	api.POST("/follow-island", followIsland)
 	api.GET("/all-islands", allIslands)
+	api.POST("/update-note", updateNote)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

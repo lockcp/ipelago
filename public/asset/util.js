@@ -141,3 +141,9 @@ function CreateAlerts() {
 
   return alerts;
 }
+
+function StatusElem(status) {
+  if (status == 'alive') {
+    return m('span').text('Alive').addClass('badge bg-success');
+  }
+}

@@ -160,3 +160,7 @@ func (db *DB) InsertIsland(addr string, nl *Newsletter) error {
 
 	return tx.Commit()
 }
+
+func (db *DB) UpdateNote(note, id string) error {
+	return db.Exec(stmt.UpdateNote, note, id)
+}

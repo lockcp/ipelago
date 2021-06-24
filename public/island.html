@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>An Island in iPelago</title>
+  <style>
+    .bi-pencil-square {
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+let oldNote;
+let lastTime;
+
+const Loading = CreateLoading();
+const Alerts = CreateAlerts();
+
+const title = m('h1').addClass('Title display-6 my-5').text('An Island in iPelago');
+
+const EditNoteBtn = cc('i');
+const NoteInput = cc('input');
+const NoteInputOK = cc('button');
+const NoteInputGroup = cc('div', null, [
+  m(NoteInput).attr({type:'text'}).addClass('form-control'),
+  m(NoteInputOK).attr({type:'button'}).text('ok').addClass('btn btn-outline-primary'),
+]);
+const NoteText = cc('span');
+
+const InfoCard = cc('div');
+
+InfoCard.view = () => m('div').attr({id:InfoCard.raw_id}).addClass('card').append(
+  m('div').addClass('card-body d-flex justify-content-start align-items-start').append([
+    m('img').addClass('Avatar').attr({src:'/public/avatars/default.jpg',alt:'avatar'}),
+    m('div').addClass('ms-3 flex-fill').append([
+      m('div').addClass('Name'),
+      m(EditNoteBtn).addClass('bi-pencil-square').attr({title:'edit note'}),
+      ' ',
+      m(NoteText).addClass('text-muted'),
+      m(NoteInputGroup).addClass('input-group').hide(),
+    ]),
+  ]),
+);
+
+InfoCard.init = (island) => {
+  if (island.Avatar) {
+    $(InfoCard.id).find('.Avatar').attr({src:island.Avatar})
+  }
+
+  const nameElem = $(InfoCard.id).find('.Name');
+  nameElem.append( m('strong').text(island.Name) );
+
+  if (island.Status) {
+    nameElem.append([
+      ' ',
+      StatusElem(island.Status),
+    ]);
+  }
+  nameElem.append([
+    m('br'),
+    m('span').addClass('small text-muted').text(island.Address),
+  ]);
+  if (island.Email) {
+    nameElem.append([
+      m('br'),
+      m('span').addClass('small text-muted').text(island.Email),
+    ]);
+  }
+  if (island.Link) {
+    nameElem.append([
+      m('br'),
+      m('a').addClass('small').text(island.Link).attr({href:island.Link}),
+    ]);
+  }
+
+  const noteText = $(NoteText.id);
+  const noteInput = $(NoteInput.id);
+  const inputGroup = $(NoteInputGroup.id);
+  function toggleInput() {
+    inputGroup.toggle();
+    noteText.toggle();
+  }
+  if (island.Note) {
+    noteText.text(island.Note);
+    noteInput.val(island.Note);
+  }
+  $(EditNoteBtn.id).click(() => {
+    toggleInput();
+    noteInput.focus();
+  });
+  $(NoteInputOK.id).click(() => {
+    const newNote = noteInput.val().trim();
+    if (newNote == oldNote) {
+      toggleInput();
+      return;
+    }
+    const body = new FormData();
+    body.set('id', island.ID);
+    body.set('note', newNote);
+    ajax({method:'POST',url:'/api/update-note',alerts:Alerts,buttonID:NoteInputOK.id,body:body},
+        () => {
+          oldNote = newNote;
+          noteText.text(newNote);
+          toggleInput();
+        }, () => {
+          noteInput.focus();
+        });
+  });
+};
+
+const MsgList = cc('ul');
+
+MsgList.view = () => m('ul')
+  .attr({id:MsgList.raw_id}).addClass('list-group list-group-flush');
+
+MsgList.append = (messages) => {
+  messages.forEach((msg) => {
+    const item = MsgItem(msg);
+    $(MsgList.id).append(m(item));
+  });
+};
+
+const MoreBtn = cc('button');
+const BottomAlerts = CreateAlerts();
+
+const BottomArea = cc('p', null, [
+  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}),
+]);
+
+$('#root').append([
+  title,
+  m(Loading),
+  m(InfoCard).hide(),
+  m(Alerts).addClass('my-3'),
+  m(MsgList),
+  m(BottomAlerts),
+  m(BottomArea).addClass('text-center my-5').hide(),
+]);
+
+init();
+
+function init() {
+  const id = getUrlParam('id');
+
+  ajax({method:'GET',url:'/api/get-island/'+id,alerts:Alerts},
+      (island) => {
+        oldNote = island.Note;
+        $('title').text(`${island.Name} in iPelago`);
+        $(InfoCard.id).show();
+        InfoCard.init(island);
+        getMessages(id);
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
+
+function getMessages(id) {
+  ajax({method:'GET',url:'/api/more-island-messages?id='+id,alerts:Alerts},
+      (messages) => {
+        if (!messages || messages.length == 0) {
+          Alerts.insert('info', '没有消息');
+          return;
+        }
+        $(BottomArea.id).show();
+        MsgList.append(messages);
+        lastTime = messages[messages.length-1].Time;
+        $(MoreBtn.id).click(() => {
+          ajax({method:'GET',url:`/api/more-island-messages?id=${id}&time=${lastTime}`,alerts:BottomAlerts,buttonID:MoreBtn.id},
+              (moreMessages) => {
+                if (!moreMessages || moreMessages.length == 0) {
+                  BottomAlerts.insert('primary', '没有更多消息了');
+                  $(MoreBtn.id).hide();
+                  return;
+                }
+                MsgList.append(moreMessages);
+                lastTime = moreMessages[moreMessages.length-1].Time;
+              });
+        });
+      });
+}
+
+function itemID(id) {
+  return `i${id}`;
+}
+
+function MsgItem(msg) {
+  const datetime = dayjs.unix(msg.Time).format('YYYY-MM-DD HH:mm:ss');
+  const ItemAlerts = CreateAlerts();
+  const self = cc('div', itemID(msg.ID))
+
+  self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item MsgItem mb-3').append([
+      m('div').addClass('Datetime small text-muted').text(datetime),
+      m('span').addClass('Contents').text(msg.Body),
+      m(ItemAlerts),
+  ]);
+
+  return self;
+}
+
+</script>
+</body>
+</html>

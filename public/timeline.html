@@ -38,6 +38,7 @@ MsgList.append = (messages) => {
     item.init();
   });
 };
+
 const MoreBtn = cc('button');
 const BottomAlerts = CreateAlerts();
 
@@ -92,7 +93,7 @@ function MsgItem(msg) {
   const datetime = dayjs.unix(msg.Time).format('YYYY-MM-DD HH:mm:ss');
   const self = cc('div', itemID(msg.ID))
   self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
-    m('img').addClass('Avatar'),
+    m('a').addClass('AvatarLink').append( m('img').addClass('Avatar') ),
     m('div').addClass('ms-3 flex-fill').append([
       m('p').addClass('Name'),
       m('span').addClass('Contents').text(msg.Body),
@@ -107,8 +108,15 @@ function MsgItem(msg) {
     if (island.Avatar) {
       avatar = island.Avatar;
     }
-    $(self.id).find('.Avatar').attr({src:avatar});
-    $(self.id).find('.Name').append( m('strong').text(island.Name) );
+    let islandPage = '/public/island.html?id='+msg.IslandID;
+    if (msg.IslandID == 'My-Island-ID') {
+      islandPage = '/public/my-messages.html';
+    }
+    $(self.id).find('.AvatarLink').attr({href:islandPage});
+    $(self.id).find('.Avatar').attr({src:avatar,alt:'avatar'});
+    $(self.id).find('.Name').append(
+      m('a').text(island.Name).attr({href:islandPage}).addClass('text-decoration-none')
+    );
     if (island.Email) {
       $(self.id).find('.Name').append([
         m('span').addClass('small text-muted').text(` (${island.Email})`),

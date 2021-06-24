@@ -78,6 +78,8 @@ const UpdateIsland = `
     SET name=?, email=?, avatar=?, link=?, address=?, note=?, status=?
     WHERE id=?;`
 
+const UpdateNote = `UPDATE island SET note=? WHERE id=?;`
+
 const InsertMsg = `
     INSERT INTO message (id, island_id, time, body)
     VALUES (?, ?, ?, ?);`
