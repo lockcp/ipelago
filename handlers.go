@@ -69,12 +69,26 @@ func updateMyIsland(c echo.Context) error {
 	return db.UpdateMyIsland(island)
 }
 
+// moreMyMessages 获取我的小岛的更多消息。
 func moreMyMessages(c echo.Context) error {
 	datetime, err := getTimestamp(c)
 	if err != nil {
 		return err
 	}
 	messages, err := db.MoreIslandMessages(database.MyIslandID, datetime)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, messages)
+}
+
+// moreMessages 获取全部小岛的更多消息。
+func moreMessages(c echo.Context) error {
+	datetime, err := getTimestamp(c)
+	if err != nil {
+		return err
+	}
+	messages, err := db.MoreMessages(datetime)
 	if err != nil {
 		return err
 	}

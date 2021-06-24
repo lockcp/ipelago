@@ -38,12 +38,50 @@ MsgList.append = (messages) => {
     item.init();
   });
 };
+const MoreBtn = cc('button');
+const BottomAlerts = CreateAlerts();
+
+const BottomArea = cc('p', null, [
+  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}),
+]);
 
 $('#root').append([
   title,
+  m(Loading),
   m(Alerts),
   m(MsgList),
+  m(BottomAlerts),
+  m(BottomArea).addClass('text-center my-5').hide(),
 ]);
+
+init();
+
+function init() {
+  ajax({method:'GET',url:'/api/more-messages',alerts:Alerts},
+      (messages) => {
+        if (!messages || messages.length == 0) {
+          Alerts.insert('info', '没有任何消息，可能尚未订阅小岛');
+          return;
+        }
+        $(BottomArea.id).show();
+        MsgList.append(messages);
+        lastTime = messages[messages.length-1].Time;
+        $(MoreBtn.id).click(() => {
+          ajax({method:'GET',url:'/api/more-messages?time='+lastTime,alerts:BottomAlerts,buttonID:MoreBtn.id},
+              (moreMessages) => {
+                if (!moreMessages || moreMessages.length == 0) {
+                  BottomAlerts.insert('primary', '没有更多消息了');
+                  $(MoreBtn.id).hide();
+                  return;
+                }
+                MsgList.append(moreMessages);
+                lastTime = moreMessages[moreMessages.length-1].Time;
+              });
+        });
+      }, null, () => {
+        $(Loading.id).hide();
+      });
+}
 
 function itemID(id) {
   return `i${id}`;
@@ -55,7 +93,7 @@ function MsgItem(msg) {
   const self = cc('div', itemID(msg.ID))
   self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
     m('img').addClass('Avatar'),
-    m('div').addClass('ms-3').append([
+    m('div').addClass('ms-3 flex-fill').append([
       m('p').addClass('Name'),
       m('span').addClass('Contents').text(msg.Body),
       m('div').addClass('Datetime small text-muted text-end').text(datetime),
@@ -63,7 +101,7 @@ function MsgItem(msg) {
     ]),
   ]);
 
-  self.init = () => {
+  self.init = async () => {
     const island = await getIsland(msg.IslandID, ItemAlerts);
     let avatar = '/public/avatars/default.jpg';
     if (island.Avatar) {
