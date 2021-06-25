@@ -17,9 +17,10 @@ const (
 type Status string
 
 const (
-	Alive   Status = "alive"
-	Timeout Status = "timeout"
-	Down    Status = "down"
+	Alive          Status = "alive"
+	Timeout        Status = "timeout"
+	Down           Status = "down"
+	AliveButNoNews Status = "alive-but-no-news"
 )
 
 type Newsletter struct {
@@ -105,6 +106,28 @@ func NewIsland(addr string, nl *Newsletter) Island {
 		Address: addr,
 		Status:  Alive,
 	}
+}
+
+func (island *Island) SetStatus(ok bool) {
+	if ok {
+		island.Status = Alive
+		return
+	}
+	if !ok && island.Status == Timeout {
+		island.Status = Down
+		return
+	}
+	island.Status = Timeout
+}
+
+func (island *Island) UpdateFrom(news *Newsletter) (changed bool) {
+	a := island.Name + island.Email + island.Avatar + island.Link
+	b := news.Name + news.Email + news.Avatar + news.Link
+	island.Name = news.Name
+	island.Email = news.Email
+	island.Avatar = news.Avatar
+	island.Link = news.Link
+	return a != b
 }
 
 type Message struct {

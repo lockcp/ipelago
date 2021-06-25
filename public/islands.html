@@ -38,7 +38,7 @@ IslandList.append = (islands) => {
     $(IslandList.id).append(m(row).addClass('row'));
     pair.forEach(island => {
       const item = IslandItem(island);
-      $(row.id).append(m('div').addClass('col-md my-2').append(m(item)));
+      $(row.id).append(m('div').addClass('col-md-6 my-2').append(m(item)));
       item.init();
     });
   });
@@ -136,8 +136,9 @@ function IslandItem(island) {
     if (island.Status) {
       $(self.id).find('.Datetime').append([
         ' ',
-        StatusElem(island.Status),
+        m('span').addClass('IslandStatus badge'),
       ]);
+      changeStatus(island.Status);
     }
   };
 

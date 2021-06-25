@@ -15,6 +15,7 @@
   
   <title>An Island in iPelago</title>
   <style>
+    .bi-arrow-repeat,
     .bi-pencil-square {
       cursor: pointer;
     }
@@ -33,6 +34,12 @@ const Alerts = CreateAlerts();
 
 const title = m('h1').addClass('Title display-6 my-5').text('An Island in iPelago');
 
+const UpdateBtn = cc('i');
+const UpdateLoading = CreateSmallLoading();
+function toggleUpdateBtn() {
+  $(UpdateBtn.id).toggle();
+  $(UpdateLoading.id).toggle();
+}
 const EditNoteBtn = cc('i');
 const NoteInput = cc('input');
 const NoteInputOK = cc('button');
@@ -68,9 +75,35 @@ InfoCard.init = (island) => {
   if (island.Status) {
     nameElem.append([
       ' ',
-      StatusElem(island.Status),
+      m('span').addClass('IslandStatus badge'),
     ]);
+    changeStatus(island.Status);
   }
+  nameElem.append([
+    ' ',
+    m(UpdateLoading).hide(),
+    m(UpdateBtn).addClass('bi-arrow-repeat').attr({title:'update'}).click(() => {
+      toggleUpdateBtn();
+      const body = new FormData();
+      body.set('id', island.ID)
+      ajax({method:'POST',url:'/api/update-island',alerts:Alerts,body:body},
+          (island) => {
+            changeStatus(island.Status);
+            if (island.Status == 'alive') {
+              Alerts.insert('success', '更新成功，本页会自动刷新......');
+              window.setTimeout(() => { window.location.reload() }, 5000);
+            } else if (island.Status == 'alive-but-no-news') {
+              Alerts.insert('success', '连接成功，但没有新消息');
+            } else if (island.Status == 'timeout' || island.Status == 'down') {
+              Alerts.insert('danger', '连接失败');
+            } else {
+              Alerts.insert('danger', '状态异常。 status: ' + island.Status);
+            }
+          }, null, () => {
+            toggleUpdateBtn();
+          });
+    }),
+  ]);
   nameElem.append([
     m('br'),
     m('span').addClass('small text-muted').text(island.Address),

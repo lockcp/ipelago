@@ -18,7 +18,8 @@ const (
 )
 
 type (
-	Island = model.Island
+	Island     = model.Island
+	Newsletter = model.Newsletter
 )
 
 var (

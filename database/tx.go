@@ -72,15 +72,13 @@ func getIslandByID(tx TX, id string) (island Island, err error) {
 	return
 }
 
-func updateIsland(tx TX, island Island) error {
+func updateIsland(tx TX, island *Island) error {
 	_, err := tx.Exec(
 		stmt.UpdateIsland,
 		island.Name,
 		island.Email,
 		island.Avatar,
 		island.Link,
-		island.Address,
-		island.Note,
 		island.Status,
 		island.ID,
 	)
@@ -211,26 +209,27 @@ func newsletterHalf(data []byte) ([]byte, error) {
 	return json.MarshalIndent(newsletter, "", "  ")
 }
 
-func insertMessages(tx TX, id string, messages []*SimpleMsg) error {
+func insertMessages(tx TX, id string, messages []*SimpleMsg) (n int, err error) {
 	lastTime := util.TimeNow()
 	lastMsg, err := getLastMsg(tx, id)
 
 	if err == sql.ErrNoRows {
-		lastTime = lastMsg.Time
 		err = nil
 	}
 	if err != nil {
-		return err
+		return
 	}
+	lastTime = lastMsg.Time
 
 	for i := range messages {
 		msg := messages[i].ToMessage(id)
 		if msg.Time <= lastTime {
 			break
 		}
-		if err := insertMsg(tx, msg); err != nil {
-			return err
+		if err = insertMsg(tx, msg); err != nil {
+			return
 		}
+		n++
 	}
-	return nil
+	return
 }

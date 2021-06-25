@@ -93,6 +93,15 @@ function CreateLoading() {
   return self;
 }
 
+function CreateSmallLoading() {
+  const self = cc('div');
+  self.view = () => m('div').attr({id:self.raw_id})
+    .addClass('spinner-border spinner-border-sm').attr({role:'status'}).append(
+      m('span').addClass('visually-hidden').text('Loading...')
+    );
+  return self;
+}
+
 function CreateInfoPair(name, messages) {
   
   const infoMsg = cc('div', 'abount'+name+'msg');
@@ -142,8 +151,15 @@ function CreateAlerts() {
   return alerts;
 }
 
-function StatusElem(status) {
-  if (status == 'alive') {
-    return m('span').text('Alive').addClass('badge bg-success');
+function changeStatus(status) {
+  if (status == 'alive' || status == 'alive-but-no-news') {
+    $('.IslandStatus').removeClass('bg-warning text-dark').removeClass('bg-dark')
+      .addClass('bg-success').text('Alive');
+  } else if (status == 'timeout') {
+    $('.IslandStatus').removeClass('bg-success').removeClass('bg-dark')
+      .addClass('bg-waring text-dark').text('Timeout');
+  } else if (status == 'down') {
+    $('.IslandStatus').removeClass('bg-warning text-dark').removeClass('bg-success')
+      .addClass('bg-dark').text('Down');
   }
 }

@@ -58,7 +58,7 @@ func createMyIsland(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return db.CreateMyIsland(island)
+	return db.CreateMyIsland(*island)
 }
 
 func updateMyIsland(c echo.Context) error {
@@ -127,6 +127,53 @@ func publishNewsletter(c echo.Context) error {
 
 func followIsland(c echo.Context) (err error) {
 	address := c.FormValue("address")
+	news, err := getNews(address)
+	if err != nil {
+		return err
+	}
+	if err := db.InsertIsland(address, &news); err != nil {
+		return err
+	}
+	return c.JSON(OK, news.Name)
+}
+
+func updateIsland(c echo.Context) error {
+	// 根据 id 从数据库中提取 island
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	island, err := db.GetIslandWithoutMsg(id)
+	if err != nil {
+		return err
+	}
+
+	// 从 island.Address 拉取消息，并根据是否超时来设置 island.Status
+	oldStatus := island.Status
+	news, err := getNews(island.Address)
+	if err != nil && util.ErrorContains(err, "timeout") {
+		island.SetStatus(false)
+		err = nil
+	}
+	if err != nil {
+		return err
+	}
+	island.SetStatus(true)
+
+	// 尝试更新并返回 changed 表示是否真的执行了更新。
+	// 如果岛名等发生了变化，或新增了消息，则 changed 为 true.
+	// (注意，状态变化不影响 changed 的真假）
+	changed, err := db.UpdateIsland(island, &news, oldStatus)
+	if err != nil {
+		return err
+	}
+	if island.Status == model.Alive && !changed {
+		island.Status = model.AliveButNoNews
+	}
+	return c.JSON(OK, Island{Status: island.Status})
+}
+
+func getNews(address string) (news Newsletter, err error) {
 	done := make(chan bool, 1)
 
 	var res *http.Response
@@ -149,18 +196,12 @@ func followIsland(c echo.Context) (err error) {
 			return
 		}
 		if err = util.CheckStringSize(string(blob), model.MsgSizeLimit); err != nil {
-			return fmt.Errorf("the size exceeds the limit (15KB)")
+			return news, fmt.Errorf("the size exceeds the limit (15KB)")
 		}
-		var island model.Newsletter
-		if err = json.Unmarshal(blob, &island); err != nil {
-			return
-		}
-		if err := db.InsertIsland(address, &island); err != nil {
-			return err
-		}
-		return c.JSON(OK, island.Name)
+		err = json.Unmarshal(blob, &news)
+		return
 	case <-time.After(5 * time.Second):
-		return fmt.Errorf("timeout")
+		return news, fmt.Errorf("timeout")
 	}
 }
 
@@ -191,7 +232,7 @@ func getTimestamp(c echo.Context) (int64, error) {
 	return strconv.ParseInt(s, 10, 0)
 }
 
-func getFormMyIsland(c echo.Context) (island Island, err error) {
+func getFormMyIsland(c echo.Context) (island *Island, err error) {
 	name, err := getFormValue(c, "name")
 	if err != nil {
 		return
@@ -200,7 +241,7 @@ func getFormMyIsland(c echo.Context) (island Island, err error) {
 	avatar := strings.TrimSpace(c.FormValue("avatar"))
 	link := strings.TrimSpace(c.FormValue("link"))
 
-	island = Island{
+	island = &Island{
 		ID:     database.MyIslandID,
 		Name:   name,
 		Email:  email,

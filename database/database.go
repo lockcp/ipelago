@@ -16,6 +16,7 @@ const OnePage = 10 // 每一页有多少条消息。
 
 type (
 	Island     = model.Island
+	Status     = model.Status
 	Message    = model.Message
 	SimpleMsg  = model.SimpleMsg
 	Newsletter = model.Newsletter
@@ -57,7 +58,7 @@ func (db *DB) CreateMyIsland(island Island) error {
 	return tx.Commit()
 }
 
-func (db *DB) UpdateMyIsland(island Island) error {
+func (db *DB) UpdateMyIsland(island *Island) error {
 	return updateIsland(db.DB, island)
 }
 
@@ -73,8 +74,9 @@ func (db *DB) GetIslandByID(id string) (Island, error) {
 	return island, err
 }
 
-func (db *DB) GetIslandWithoutMsg(id string) (Island, error) {
-	return getIslandWithoutMsg(db.DB, id)
+func (db *DB) GetIslandWithoutMsg(id string) (*Island, error) {
+	island, err := getIslandWithoutMsg(db.DB, id)
+	return &island, err
 }
 
 func (db *DB) AllIslands() (islands []*Island, err error) {
@@ -143,22 +145,46 @@ func (db *DB) PublishNewsletter(filePath string) error {
 	return os.WriteFile(filePath, newsletter, 0644)
 }
 
-func (db *DB) InsertIsland(addr string, nl *Newsletter) error {
+func (db *DB) InsertIsland(addr string, news *Newsletter) error {
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
-	if err := nl.Trim().Check(); err != nil {
+	if err := news.Trim().Check(); err != nil {
 		return err
 	}
-	island := model.NewIsland(addr, nl)
+	island := model.NewIsland(addr, news)
 	if err := insertIsland(tx, island); err != nil {
 		return err
 	}
-	if err := insertMessages(tx, island.ID, nl.Messages); err != nil {
+	if _, err := insertMessages(tx, island.ID, news.Messages); err != nil {
 		return err
 	}
 
 	return tx.Commit()
+}
+
+func (db *DB) UpdateIsland(island *Island, news *Newsletter, oldStatus Status) (changed bool, err error) {
+	tx := db.mustBegin()
+	defer tx.Rollback()
+
+	if err = news.Trim().Check(); err != nil {
+		return
+	}
+	changed = island.UpdateFrom(news)
+
+	// 当且只当 island 有变化（包括状态变化）时，才执行更新。
+	if changed || (island.Status != oldStatus) {
+		if err = updateIsland(tx, island); err != nil {
+			return
+		}
+	}
+	n, err := insertMessages(tx, island.ID, news.Messages)
+	if err != nil {
+		return
+	}
+	changed = changed || (n > 0)
+	err = tx.Commit()
+	return
 }
 
 func (db *DB) UpdateNote(note, id string) error {
