@@ -22,16 +22,20 @@
 
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
+const Logs = CreateLogs();
 
-const title = m('h1').addClass('display-6 my-5').text('Islands in iPelago');
+const UpdateBtn = cc('button');
+const TitleArea = {
+  view: () => m('div').addClass('d-flex justify-content-start align-items-end my-5').append([
+    m('div').addClass('display-6').text('Islands in iPelago'),
+    m(UpdateBtn).text('update all').attr({type:'button'})
+      .addClass('btn btn-outline-secondary btn-sm ms-2').hide(),
+  ]),
+};
 
 const IslandList = cc('div');
 
 IslandList.append = (islands) => {
-  if (!islands || islands.length == 0) {
-    Alerts.insert('info', '尚未订阅任何岛');
-    return;
-  }
   const islandPairs = pairs(islands); // 两个一行，为了方便先组对。
   islandPairs.forEach(pair => {
     const row = cc('div');
@@ -45,9 +49,10 @@ IslandList.append = (islands) => {
 };
 
 $('#root').append([
-  title,
+  m(TitleArea),
   m(Loading),
   m(Alerts).addClass('my-3'),
+  m(Logs),
   m(IslandList),
 ]);
 
@@ -56,7 +61,17 @@ init();
 function init() {
   ajax({method:'GET',url:'/api/all-islands',alerts:Alerts},
       (islands) => {
+        if (!islands || islands.length == 0) {
+          Alerts.insert('info', '尚未订阅任何岛');
+          return;
+        }
         IslandList.append(islands);
+
+        $(UpdateBtn.id).show().click(() => {
+          $(IslandList.id).hide();
+          updateIslands(islands);
+          $(UpdateBtn.id).hide();
+        });
       }, null, () => {
         $(Loading.id).hide();
       });
@@ -143,6 +158,49 @@ function IslandItem(island) {
   };
 
   return self;
+}
+
+async function updateIslands(islands) {
+  for (let i=0; i<islands.length; i++) {
+    const island = islands[i];
+    Logs.insert('dark', '正在更新小岛: ' + island.Address);
+    try {
+      const status = await updateIsland(island.ID);
+      if (status == 'alive') {
+        Logs.insert('success', `${island.Name} 更新成功`);
+      } else if (status == 'alive-but-no-news') {
+        Logs.insert('success', `${island.Name} 连接成功，但没有新消息`);
+      } else {
+        Logs.insert('danger', `${island.Name} status: ${island.Status}`);
+      }
+    } catch (error) {
+      Logs.insert('danger', `${island.Name} ${error}`);
+    }
+  }
+  Logs.insert('primary', '操作结束，请手动刷新页面。');
+}
+
+function updateIsland(id) {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(Error('timeout'));
+    }, 10*1000);
+
+    const body = new FormData();
+    body.set('id', id);
+    ajax({method:'POST',url:'/api/update-island',body:body},
+        // onSuccess
+        (island) => {
+          resolve(island.Status);
+        }, (that) => {
+          // onError
+          const errMsg = `${that.status} ${that.responseText}`;
+          reject(errMsg);
+        }, () => {
+          // onAlways
+          window.clearTimeout(timeout);
+        });
+  });
 }
 
 </script>

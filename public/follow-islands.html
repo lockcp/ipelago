@@ -21,16 +21,9 @@
 <script>
 
 const Alerts = CreateAlerts();
+const Logs = CreateLogs();
 
 const title = m('h1').addClass('display-6 my-5').text('Follow Islands');
-
-const Logs = cc('ul');
-
-Logs.insert = (msgType, msg) => {
-  const time = dayjs().format('HH:mm:ss');
-  const item = m('li').addClass(`text-${msgType}`).text(`${time} ${msg}`);
-  $(Logs.id).prepend(item);
-}
 
 const SubmitBtn = cc('button');
 const Addresses = cc('textarea');
@@ -76,12 +69,12 @@ async function followIslands(islands) {
       const name = await follow(islands[i]);
       Logs.insert('success', '订阅成功: ' + name);
     } catch (error) {
-      if (error.message.indexOf("UNIQUE constraint failed: island.address") >= 0) {
+      if (error.indexOf("UNIQUE constraint failed: island.address") >= 0) {
         // 忽略已订阅的小岛
         continue;
       }
       failed.push(islands[i]);
-      Logs.insert('danger', error.name + ': ' + error.message);
+      Logs.insert('danger', error);
     }
   }
   if (failed.length > 0) {
@@ -108,7 +101,7 @@ function follow(islandAddr) {
     }, (that) => {
       // onError
       const errMsg = `${that.status} ${that.responseText}`;
-      reject(Error(errMsg));
+      reject(errMsg);
     }, () => {
       // onAlways
       window.clearTimeout(timeout);

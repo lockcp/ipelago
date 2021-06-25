@@ -151,6 +151,16 @@ function CreateAlerts() {
   return alerts;
 }
 
+function CreateLogs() {  
+  const self = cc('ul');
+  self.insert = (msgType, msg) => {
+    const time = dayjs().format('HH:mm:ss');
+    const item = m('li').addClass(`text-${msgType}`).text(`${time} ${msg}`);
+    $(self.id).prepend(item);
+  }
+  return self;
+}
+
 function changeStatus(status) {
   if (status == 'alive' || status == 'alive-but-no-news') {
     $('.IslandStatus').removeClass('bg-warning text-dark').removeClass('bg-dark')

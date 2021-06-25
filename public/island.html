@@ -85,7 +85,7 @@ InfoCard.init = (island) => {
     m(UpdateBtn).addClass('bi-arrow-repeat').attr({title:'update'}).click(() => {
       toggleUpdateBtn();
       const body = new FormData();
-      body.set('id', island.ID)
+      body.set('id', island.ID);
       ajax({method:'POST',url:'/api/update-island',alerts:Alerts,body:body},
           (island) => {
             changeStatus(island.Status);
