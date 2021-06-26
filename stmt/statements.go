@@ -71,6 +71,9 @@ const GetMoreMessages = `
     INNER JOIN island ON msg.island_id = island.id
     WHERE msg.time<? and island.status<>"unfollowed" ORDER BY msg.time DESC LIMIT ?;`
 
+const DeleteIsland = `
+    DELETE FROM island WHERE id=?;`
+
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status, checked)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
@@ -92,3 +95,9 @@ const UpdateNote = `
 const InsertMsg = `
     INSERT INTO message (id, island_id, time, body)
     VALUES (?, ?, ?, ?);`
+
+const DeleteMessage = `
+    DELETE FROM message WHERE id=?;`
+
+const CountMessages = `
+    SELECT count(*) FROM message WHERE island_id=?;`

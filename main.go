@@ -28,6 +28,8 @@ func main() {
 	api.POST("/unfollow", unfollow)
 	api.POST("/follow-again", followAgain)
 	api.POST("/update-island", updateIsland)
+	api.POST("/delete-island", deleteIsland)
+	api.POST("/delete-message", deleteMessage)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

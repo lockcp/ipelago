@@ -14,6 +14,14 @@
   <script src="/public/asset/util.js"></script>
   
   <title>My Messages - iPelago</title>
+  <style>
+    .bi {
+      cursor: pointer;
+    }
+    .bi-trash:hover {
+      color: red;
+    }
+  </style>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
@@ -140,7 +148,21 @@ function MsgItem(msg) {
   self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
     m('img').addClass('Avatar').attr({src:'/public/avatars/default.jpg'}),
     m('div').addClass('ms-3 flex-fill').append([
-      m('div').addClass('Datetime small text-muted').text(datetime),
+      m('div').addClass('Datetime small text-muted').append([
+        m('span').text(datetime),
+        m('span').text('DELETED').addClass('Deleted badge bg-secondary ms-1').hide(),
+        m('i').addClass('bi bi-trash ms-1').attr({title:'delete'}).click(() => {
+          const body = new FormData();
+          body.set('id', msg.ID);
+          ajax({method:'POST',url:'/api/delete-message',alerts:ItemAlerts,buttonID:`${self.id} .bi-trash`,body:body},
+              () => {
+                $(self.id).find('.Contents').addClass('text-muted');
+                $(self.id).find('.Deleted').toggle();
+                $(self.id).find('.bi-trash').toggle();
+                $(self.id).find('.Avatar').css('filter', 'opacity(0.5) grayscale(1)');
+              });
+        }),
+      ]),
       m('span').addClass('Contents').text(msg.Body),
       m(ItemAlerts),
     ]),

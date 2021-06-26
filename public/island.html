@@ -25,6 +25,9 @@
 
 <script>
 
+const idForm = new FormData();
+idForm.set('id', getUrlParam('id'));
+
 let oldNote;
 let lastTime;
 
@@ -42,6 +45,7 @@ function toggleUpdateBtn() {
 }
 const UnfollowBtn = cc('i');
 const FollowAgainBtn = cc('i');
+const DeleteBtn = cc('i');
 const EditNoteBtn = cc('i');
 const NoteInput = cc('input');
 const NoteInputOK = cc('button');
@@ -67,8 +71,6 @@ InfoCard.view = () => m('div').attr({id:InfoCard.raw_id}).addClass('card').appen
 );
 
 InfoCard.init = (island) => {
-  const idForm = new FormData();
-  idForm.set('id', island.ID);
 
   if (island.Avatar) {
     $(InfoCard.id).find('.Avatar').attr({src:island.Avatar})
@@ -95,7 +97,7 @@ InfoCard.init = (island) => {
             changeStatus(StatusBadge.id, island.Status);
             if (island.Status == 'alive') {
               Alerts.insert('success', '更新成功，本页会自动刷新......');
-              window.setTimeout(() => { window.location.reload() }, 5000);
+              window.setTimeout(() => { window.location.reload() }, 3000);
             } else if (island.Status == 'alive-but-no-news') {
               Alerts.insert('success', '连接成功，但没有新消息');
             } else if (island.Status == 'timeout' || island.Status == 'down') {
@@ -122,12 +124,17 @@ InfoCard.init = (island) => {
             toggleUnfollow();
           });
     }),
+    ' ',
+    m(DeleteBtn).addClass('bi bi-trash').attr({title:'delete'}).hide().click(() => {
+      Alerts.insert('primary', `请按 F12 进入网页控制台，输入命令 delete_island() 按回车即可删除【${island.Name}】及其全部消息。`);
+    }),
   ]);
 
   function toggleUnfollow() {
     $(UpdateBtn.id).toggle();
     $(UnfollowBtn.id).toggle();
     $(FollowAgainBtn.id).toggle();
+    $(DeleteBtn.id).toggle();
   }
 
   if (island.Status == 'unfollowed') {
@@ -224,15 +231,15 @@ $('#root').append([
 init();
 
 function init() {
-  const id = getUrlParam('id');
+  island_id = getUrlParam('id');
 
-  ajax({method:'GET',url:'/api/get-island/'+id,alerts:Alerts},
+  ajax({method:'GET',url:'/api/get-island/'+island_id,alerts:Alerts},
       (island) => {
         oldNote = island.Note;
         $('title').text(`${island.Name} in iPelago`);
         $(InfoCard.id).show();
         InfoCard.init(island);
-        getMessages(id);
+        getMessages(island_id);
       }, null, () => {
         $(Loading.id).hide();
       });
@@ -279,6 +286,19 @@ function MsgItem(msg) {
   ]);
 
   return self;
+}
+
+function delete_island() {
+  ajax({method:'POST',url:'/api/delete-island',alerts:Alerts,body:idForm},
+      () => {
+        $(FollowAgainBtn.id).hide();
+        $(DeleteBtn.id).hide();
+        $(EditNoteBtn.id).hide();
+        const msg = '该岛及其全部消息已被删除。';
+        Alerts.clear();
+        Alerts.insert('success', msg);
+        console.log(msg);
+      });
 }
 
 </script>

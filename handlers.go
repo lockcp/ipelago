@@ -236,6 +236,22 @@ func followAgain(c echo.Context) error {
 	return db.SetStatus(model.Alive, id)
 }
 
+func deleteIsland(c echo.Context) error {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	return db.DeleteIsland(id)
+}
+
+func deleteMessage(c echo.Context) error {
+	id, err := getFormValue(c, "id")
+	if err != nil {
+		return err
+	}
+	return db.DeleteMessage(id)
+}
+
 // getFormValue gets the c.FormValue(key), trims its spaces,
 // and checks if it is empty or not.
 func getFormValue(c echo.Context, key string) (string, error) {

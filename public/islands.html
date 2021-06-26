@@ -16,7 +16,7 @@
   <title>All Islands in iPelago</title>
 </head>
 <body>
-  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+  <div id="root" class="container" style="max-width: 900px; min-width: 400px;"></div>
 
 <script>
 
@@ -132,7 +132,7 @@ function IslandItem(island) {
     const cardTitle = $(self.id).find('.CardTitle');
     if (island.Email) {
       cardTitle.append([
-        m('span').addClass('small text-muted').text(` (${island.Email})`),
+        m('span').addClass('small text-muted text-break').text(` (${island.Email})`),
       ]);
     }
     if (island.Link) {
@@ -146,7 +146,7 @@ function IslandItem(island) {
     }
     cardTitle.append([
       m('br'),
-      m('span').addClass('small text-muted').text(island.Note),
+      m('span').addClass('small text-muted text-break').text(island.Note),
     ]);
     if (island.Status) {
       $(self.id).find('.Datetime').append([

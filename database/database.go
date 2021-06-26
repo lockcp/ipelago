@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"fmt"
 	"os"
 
 	"github.com/ahui2016/ipelago/model"
@@ -198,4 +199,19 @@ func (db *DB) UpdateNote(note, id string) error {
 
 func (db *DB) SetStatus(status Status, id string) error {
 	return db.Exec(stmt.SetStatus, status, id)
+}
+
+func (db *DB) DeleteIsland(id string) error {
+	return db.Exec(stmt.DeleteIsland, id)
+}
+
+func (db *DB) DeleteMessage(id string) error {
+	n, err := getInt1(db.DB, stmt.CountMessages, MyIslandID)
+	if err != nil {
+		return err
+	}
+	if n < 2 {
+		return fmt.Errorf("至少需要保留一条消息")
+	}
+	return db.Exec(stmt.DeleteMessage, id)
 }

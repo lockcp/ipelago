@@ -65,8 +65,9 @@ const SubmitBtnArea = cc('p', null, [
       ajax({method:'POST',url:'/api/create-my-island',alerts:Alerts,buttonID:CreateBtn.id,body:body},
           () => {
             Alerts.insert('success', '建岛成功');
-            $(CreateBtn.id).hide();
-            $(UpdateBtn.id).show();
+            $(CreateBtn.id).toggle();
+            $(UpdateBtn.id).toggle();
+            $(MsgBtn.id).toggle();
           });
   }),
   m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'})
@@ -95,10 +96,10 @@ function init() {
   ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
       (island) => {
         $('#title').text('我的小岛');
-        $(MsgBtn.id).show();
         $(Form.id).show();
         if (island.ID) {
           $(UpdateBtn.id).show();
+          $(MsgBtn.id).show();
           $(NameInput.id).val(island.Name);
           $(EmailInput.id).val(island.Email);
           $(AvatarInput.id).val(island.Avatar);
