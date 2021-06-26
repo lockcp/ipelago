@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS island
   link       text    NOT NULL,
   address    text    NOT NULL UNIQUE,
   note       text    NOT NULL,
-  status     text    NOT NULL
+  status     text    NOT NULL,
+  checked    int     NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS cluster
@@ -54,11 +55,11 @@ const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetIslandByID = `
-    SELECT id, name, email, avatar, link, address, note, status
+    SELECT id, name, email, avatar, link, address, note, status, checked
     FROM island WHERE id=?;`
 
 const AllIslands = `
-    SELECT id, name, email, avatar, link, address, note, status
+    SELECT id, name, email, avatar, link, address, note, status, checked
     FROM island WHERE id<>? ORDER BY id DESC;`
 
 const GetMoreMessagesByIsland = `
@@ -70,13 +71,16 @@ const GetMoreMessages = `
     WHERE time<? ORDER BY time DESC LIMIT ?;`
 
 const InsertIsland = `
-    INSERT INTO island (id, name, email, avatar, link, address, note, status)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?);`
+    INSERT INTO island (id, name, email, avatar, link, address, note, status, checked)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 const UpdateIsland = `
     UPDATE island
     SET name=?, email=?, avatar=?, link=?, status=?
     WHERE id=?;`
+
+const UpdateIslandChecked = `
+    UPDATE island SET checked=? WHERE id=?;`
 
 const UpdateNote = `UPDATE island SET note=? WHERE id=?;`
 

@@ -45,6 +45,7 @@ func scanIsland(row Row) (island Island, err error) {
 		&island.Address,
 		&island.Note,
 		&island.Status,
+		&island.Checked,
 	)
 	return
 }
@@ -96,6 +97,7 @@ func insertIsland(tx TX, island Island) error {
 		island.Address,
 		island.Note,
 		island.Status,
+		island.Checked,
 	)
 	return err
 }

@@ -9,7 +9,9 @@ import (
 	"github.com/ahui2016/ipelago/util"
 )
 
-const OK = http.StatusOK
+const (
+	OK = http.StatusOK
+)
 
 const (
 	dbFileName     = "ipelago.db"
@@ -19,6 +21,7 @@ const (
 
 type (
 	Island     = model.Island
+	Status     = model.Status
 	Newsletter = model.Newsletter
 )
 

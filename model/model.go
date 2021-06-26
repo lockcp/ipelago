@@ -21,6 +21,7 @@ const (
 	Timeout        Status = "timeout"
 	Down           Status = "down"
 	AliveButNoNews Status = "alive-but-no-news"
+	Unfollow       Status = "unfollow"
 )
 
 type Newsletter struct {
@@ -93,6 +94,7 @@ type Island struct {
 	Address string    // 小岛地址 (JSON 文件地址)
 	Note    string    // 对该小岛的备注或评价
 	Status  Status    // 状态
+	Checked int64     // 上次获取消息的时间，用来限制获取消息的频率
 	Message SimpleMsg // 最新一条消息
 }
 
@@ -105,6 +107,7 @@ func NewIsland(addr string, nl *Newsletter) Island {
 		Link:    nl.Link,
 		Address: addr,
 		Status:  Alive,
+		Checked: util.TimeNow(),
 	}
 }
 
@@ -120,14 +123,18 @@ func (island *Island) SetStatus(ok bool) {
 	island.Status = Timeout
 }
 
+// UpdateFrom 根据 news 更新 island 的相关内容，并返回是否发生了更改.
 func (island *Island) UpdateFrom(news *Newsletter) (changed bool) {
 	a := island.Name + island.Email + island.Avatar + island.Link
 	b := news.Name + news.Email + news.Avatar + news.Link
+	if a == b {
+		return false
+	}
 	island.Name = news.Name
 	island.Email = news.Email
 	island.Avatar = news.Avatar
 	island.Link = news.Link
-	return a != b
+	return true
 }
 
 type Message struct {

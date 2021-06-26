@@ -162,8 +162,13 @@ function IslandItem(island) {
 
 async function updateIslands(islands) {
   for (let i=0; i<islands.length; i++) {
+    const Hour = 60 * 60;
     const island = islands[i];
     Logs.insert('dark', '正在更新小岛: ' + island.Address);
+    if (dayjs().unix() - island.Checked < 24*Hour) {
+      Logs.insert('info', `${island.Name} 距离上次更新时间未超过 24 小时，忽略本次更新。`);
+      continue;
+    }
     try {
       const status = await updateIsland(island.ID);
       if (status == 'alive') {

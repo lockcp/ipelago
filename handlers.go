@@ -138,7 +138,6 @@ func followIsland(c echo.Context) (err error) {
 }
 
 func updateIsland(c echo.Context) error {
-	// 根据 id 从数据库中提取 island
 	id, err := getFormValue(c, "id")
 	if err != nil {
 		return err
@@ -147,16 +146,23 @@ func updateIsland(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	status, err := getNewsAndUpdate(island)
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, Island{Status: status})
+}
 
+func getNewsAndUpdate(island *Island) (status Status, err error) {
 	// 从 island.Address 拉取消息，并根据是否超时来设置 island.Status
 	oldStatus := island.Status
 	news, err := getNews(island.Address)
-	if err != nil && util.ErrorContains(err, "timeout") {
+	if util.ErrorContains(err, "timeout") {
 		island.SetStatus(false)
 		err = nil
 	}
 	if err != nil {
-		return err
+		return
 	}
 	island.SetStatus(true)
 
@@ -165,12 +171,12 @@ func updateIsland(c echo.Context) error {
 	// (注意，状态变化不影响 changed 的真假）
 	changed, err := db.UpdateIsland(island, &news, oldStatus)
 	if err != nil {
-		return err
+		return
 	}
 	if island.Status == model.Alive && !changed {
 		island.Status = model.AliveButNoNews
 	}
-	return c.JSON(OK, Island{Status: island.Status})
+	return island.Status, nil
 }
 
 func getNews(address string) (news Newsletter, err error) {

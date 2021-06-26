@@ -167,6 +167,11 @@ func (db *DB) UpdateIsland(island *Island, news *Newsletter, oldStatus Status) (
 	tx := db.mustBegin()
 	defer tx.Rollback()
 
+	_, err = tx.Exec(stmt.UpdateIslandChecked, util.TimeNow(), island.ID)
+	if err != nil {
+		return
+	}
+
 	if err = news.Trim().Check(); err != nil {
 		return
 	}
