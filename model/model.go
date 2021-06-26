@@ -21,7 +21,7 @@ const (
 	Timeout        Status = "timeout"
 	Down           Status = "down"
 	AliveButNoNews Status = "alive-but-no-news"
-	Unfollow       Status = "unfollow"
+	Unfollowed     Status = "unfollowed"
 )
 
 type Newsletter struct {

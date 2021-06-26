@@ -195,3 +195,7 @@ func (db *DB) UpdateIsland(island *Island, news *Newsletter, oldStatus Status) (
 func (db *DB) UpdateNote(note, id string) error {
 	return db.Exec(stmt.UpdateNote, note, id)
 }
+
+func (db *DB) SetStatus(status Status, id string) error {
+	return db.Exec(stmt.SetStatus, status, id)
+}

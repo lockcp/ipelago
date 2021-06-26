@@ -33,6 +33,7 @@ const Alerts = CreateAlerts();
 
 const title = m('h1').addClass('Title display-6 my-5').text('An Island in iPelago');
 
+const StatusBadge = cc('span');
 const UpdateBtn = cc('i');
 const UpdateLoading = CreateSmallLoading();
 function toggleUpdateBtn() {
@@ -40,6 +41,7 @@ function toggleUpdateBtn() {
   $(UpdateLoading.id).toggle();
 }
 const UnfollowBtn = cc('i');
+const FollowAgainBtn = cc('i');
 const EditNoteBtn = cc('i');
 const NoteInput = cc('input');
 const NoteInputOK = cc('button');
@@ -65,6 +67,9 @@ InfoCard.view = () => m('div').attr({id:InfoCard.raw_id}).addClass('card').appen
 );
 
 InfoCard.init = (island) => {
+  const idForm = new FormData();
+  idForm.set('id', island.ID);
+
   if (island.Avatar) {
     $(InfoCard.id).find('.Avatar').attr({src:island.Avatar})
   }
@@ -75,20 +80,19 @@ InfoCard.init = (island) => {
   if (island.Status) {
     nameElem.append([
       ' ',
-      m('span').addClass('IslandStatus badge'),
+      m(StatusBadge),
     ]);
-    changeStatus(island.Status);
+    changeStatus(StatusBadge.id, island.Status);
   }
+
   nameElem.append([
     ' ',
     m(UpdateLoading).hide(),
     m(UpdateBtn).addClass('bi bi-arrow-repeat').attr({title:'update'}).click(() => {
       toggleUpdateBtn();
-      const body = new FormData();
-      body.set('id', island.ID);
-      ajax({method:'POST',url:'/api/update-island',alerts:Alerts,body:body},
+      ajax({method:'POST',url:'/api/update-island',alerts:Alerts,body:idForm},
           (island) => {
-            changeStatus(island.Status);
+            changeStatus(StatusBadge.id, island.Status);
             if (island.Status == 'alive') {
               Alerts.insert('success', '更新成功，本页会自动刷新......');
               window.setTimeout(() => { window.location.reload() }, 5000);
@@ -104,18 +108,44 @@ InfoCard.init = (island) => {
           });
     }),
     ' ',
-    m(UnfollowBtn).addClass('bi bi-person-x').attr({title:'unfollow'}),
+    m(UnfollowBtn).addClass('bi bi-person-x').attr({title:'unfollow'}).click(() => {
+      ajax({method:'POST',url:'/api/unfollow',alerts:Alerts,buttonID:UnfollowBtn.id,body:idForm},
+          () => {
+            changeStatus(StatusBadge.id, 'unfollowed');
+            toggleUnfollow();
+          });
+    }),
+    m(FollowAgainBtn).addClass('bi bi-person-check').attr({title:'follow again'}).hide().click(() => {
+      ajax({method:'POST',url:'/api/follow-again',alerts:Alerts,buttonID:FollowAgainBtn.id,body:idForm},
+          () => {
+            changeStatus(StatusBadge.id, 'alive');
+            toggleUnfollow();
+          });
+    }),
   ]);
+
+  function toggleUnfollow() {
+    $(UpdateBtn.id).toggle();
+    $(UnfollowBtn.id).toggle();
+    $(FollowAgainBtn.id).toggle();
+  }
+
+  if (island.Status == 'unfollowed') {
+    toggleUnfollow();
+  }
+
   nameElem.append([
     m('br'),
     m('span').addClass('small text-muted').text(island.Address),
   ]);
+
   if (island.Email) {
     nameElem.append([
       m('br'),
       m('span').addClass('small text-muted').text(island.Email),
     ]);
   }
+
   if (island.Link) {
     nameElem.append([
       m('br'),
@@ -126,18 +156,22 @@ InfoCard.init = (island) => {
   const noteText = $(NoteText.id);
   const noteInput = $(NoteInput.id);
   const inputGroup = $(NoteInputGroup.id);
+
   function toggleInput() {
     inputGroup.toggle();
     noteText.toggle();
   }
+
   if (island.Note) {
     noteText.text(island.Note);
     noteInput.val(island.Note);
   }
+
   $(EditNoteBtn.id).click(() => {
     toggleInput();
     noteInput.focus();
   });
+
   $(NoteInputOK.id).click(() => {
     const newNote = noteInput.val().trim();
     if (newNote == oldNote) {

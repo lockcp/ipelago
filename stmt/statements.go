@@ -67,8 +67,9 @@ const GetMoreMessagesByIsland = `
     WHERE island_id=? AND time<? ORDER BY time DESC LIMIT ?;`
 
 const GetMoreMessages = `
-    SELECT id, island_id, time, body FROM message
-    WHERE time<? ORDER BY time DESC LIMIT ?;`
+    SELECT msg.id, island_id, msg.time, msg.body FROM message AS msg
+    INNER JOIN island ON msg.island_id = island.id
+    WHERE msg.time<? and island.status<>"unfollowed" ORDER BY msg.time DESC LIMIT ?;`
 
 const InsertIsland = `
     INSERT INTO island (id, name, email, avatar, link, address, note, status, checked)
@@ -82,7 +83,11 @@ const UpdateIsland = `
 const UpdateIslandChecked = `
     UPDATE island SET checked=? WHERE id=?;`
 
-const UpdateNote = `UPDATE island SET note=? WHERE id=?;`
+const SetStatus = `
+    UPDATE island SET status=? WHERE id=?;`
+
+const UpdateNote = `
+    UPDATE island SET note=? WHERE id=?;`
 
 const InsertMsg = `
     INSERT INTO message (id, island_id, time, body)

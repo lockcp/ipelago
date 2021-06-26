@@ -25,6 +25,8 @@ func main() {
 	api.POST("/follow-island", followIsland)
 	api.GET("/all-islands", allIslands)
 	api.POST("/update-note", updateNote)
+	api.POST("/unfollow", unfollow)
+	api.POST("/follow-again", followAgain)
 	api.POST("/update-island", updateIsland)
 
 	e.Logger.Fatal(e.Start(*addr))

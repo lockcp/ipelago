@@ -161,15 +161,14 @@ function CreateLogs() {
   return self;
 }
 
-function changeStatus(status) {
+function changeStatus(id, status) {
   if (status == 'alive' || status == 'alive-but-no-news') {
-    $('.IslandStatus').removeClass('bg-warning text-dark').removeClass('bg-dark')
-      .addClass('bg-success').text('Alive');
+    $(id).attr('class', 'IslandStatus badge rounded-pill bg-success').text('Alive');
   } else if (status == 'timeout') {
-    $('.IslandStatus').removeClass('bg-success').removeClass('bg-dark')
-      .addClass('bg-waring text-dark').text('Timeout');
+    $(id).attr('class', 'IslandStatus badge rounded-pill bg-waring text-dark').text('Timeout');
   } else if (status == 'down') {
-    $('.IslandStatus').removeClass('bg-warning text-dark').removeClass('bg-success')
-      .addClass('bg-dark').text('Down');
+    $(id).attr('class', 'IslandStatus badge rounded-pill bg-dark').text('Down');
+  } else if (status == 'unfollowed') {
+    $(id).attr('class', 'IslandStatus badge rounded-pill bg-secondary').text('Unfollowed');
   }
 }
