@@ -13,7 +13,15 @@
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
   <script src="/public/asset/util.js"></script>
   
-  <title>Follow Islands - iPelago</title>
+  <title>Deny Islands - iPelago</title>
+  <style>
+    .bi {
+      cursor: pointer;
+    }
+    .bi-x:hover {
+      color: red;
+    }
+  </style>
 </head>
 <body>
   <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
@@ -23,12 +31,12 @@
 const Alerts = CreateAlerts();
 const Logs = CreateLogs();
 
-const title = m('h1').addClass('display-6 my-5').text('Follow Islands');
+const title = m('h1').addClass('display-6 my-5').text('Deny List (黑名单)');
 
 const SubmitBtn = cc('button');
 const Addresses = cc('textarea');
 const AddressesArea = cc('div', null, [
-  m('p').text('请把小岛地址粘贴到下面的文本框中，一行一个地址。然后点击 Submit 按钮。'),
+  m('p').text('在此添加你想屏蔽的小岛地址，该功能主要用来防止批量订阅时订阅到不想看的小岛。'),
   m(Addresses).addClass('form-control').on('input', () => {
     const self = $(Addresses.id);
     self.css('height', self.prop('scrollHeight'));
@@ -38,11 +46,25 @@ const AddressesArea = cc('div', null, [
   ),
 ]);
 
+const DenyList = cc('ul');
+
+DenyList.view = () => m('ul')
+  .attr({id:DenyList.raw_id}).addClass('list-group list-group-flush');
+
+DenyList.append = (islands) => {
+  islands.forEach((addr) => {
+    const item = CreateItem(addr);
+    $(DenyList.id).append(m(item));
+    item.init();
+  });
+};
+
 $('#root').append([
   title,
   m(Alerts).addClass('my-3'),
   m(AddressesArea),
   m(Logs),
+  m(DenyList).addClass('my-5'),
 ]);
 
 init();
@@ -55,46 +77,48 @@ function init() {
       .map(item => item.trim())
       .filter(item => item.length > 0);
 
-    followIslands(addresses);
+    denyIslands(addresses);
     // 在 followIslands 之后如果有代码，会立即执行，不会等待 followIslands。
   });
+
+  ajax({method:'GET',url:'/api/get-denylist',alerts:Alerts},
+      (islands) => {
+        if (!islands || islands.length == 0) {
+          return;
+        }
+        DenyList.append(islands);
+      });
 }
 
-async function followIslands(islands) {
+async function denyIslands(islands) {
   for (let i=0; i<islands.length; i++) {
-    Logs.insert('dark', '正在尝试订阅: ' + islands[i]);
     try {
-      const name = await follow(islands[i]);
-      Logs.insert('success', '订阅成功: ' + name);
+      await denyOne(islands[i]);
+      Logs.insert('success', '屏蔽成功: ' + islands[i]);
     } catch (error) {
-      if (error.indexOf("UNIQUE constraint failed: island.address") >= 0) {
-        // 忽略已订阅的小岛
-        Logs.insert('dark', '忽略: ' + islands[i]);
-        continue;
-      }
-      if (error.indexOf("DENY")) {
+      if (error.indexOf("UNIQUE constraint failed: denylist.address") >= 0) {
         // 忽略已屏蔽的小岛
-        Logs.insert('dark', '忽略: ' + islands[i]);
+        Logs.insert('success', '已在屏蔽名单中: ' + islands[i]);
         continue;
       }
-      Logs.insert('danger', error);
+      Logs.insert('danger', `${islands[i]} ${error}`);
     }
   }
-  Logs.insert('primary', `处理完成，结果如下所示：`);
+  Logs.insert('primary', '处理完成，结果如下所示：');
   enable(SubmitBtn.id);
 }
 
-function follow(islandAddr) {
+function denyOne(islandAddr) {
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
       reject(Error('timeout'));
-    }, 10*1000);
+    }, 2*1000);
 
     const body = new FormData();
     body.set('address', islandAddr);
-    ajax({method:'POST',url:'/api/follow-island',body:body}, (name) => {
+    ajax({method:'POST',url:'/api/deny-island',body:body}, () => {
       // onSuccess
-      resolve(name);
+      resolve();
     }, (that) => {
       // onError
       const errMsg = `${that.status} ${that.responseText}`;
@@ -104,6 +128,29 @@ function follow(islandAddr) {
       window.clearTimeout(timeout);
     });
   });
+}
+
+function CreateItem(addr) {
+  const ItemAlerts = CreateAlerts();
+  const self = cc('li', null, [
+    m('span').text(addr).addClass('Address'),
+    m('i').addClass('bi bi-x ms-1').attr({title:'remove from list'}),
+    m(ItemAlerts),
+  ]);
+  self.init = () => {
+    const del_btn_id = `${self.id} .bi-x`;
+    $(del_btn_id).click(() => {
+      const body = new FormData();
+      body.set('address', addr);
+      ajax({method:'POST',url:'/api/remove-deny',alerts:ItemAlerts,buttonID:del_btn_id,body:body},
+          () => {
+            $(self.id).find('.Address').hide();
+            $(del_btn_id).hide();
+            ItemAlerts.insert('success', '已解除屏蔽: ' + addr);
+          });
+    });
+  };
+  return self;
 }
 
 </script>

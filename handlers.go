@@ -127,6 +127,13 @@ func publishNewsletter(c echo.Context) error {
 
 func followIsland(c echo.Context) (err error) {
 	address := c.FormValue("address")
+	ok, err := db.IsDeny(address)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return fmt.Errorf("DENY")
+	}
 	news, err := getNews(address)
 	if err != nil {
 		return err
@@ -250,6 +257,30 @@ func deleteMessage(c echo.Context) error {
 		return err
 	}
 	return db.DeleteMessage(id)
+}
+
+func denyIsland(c echo.Context) error {
+	addr, err := getFormValue(c, "address")
+	if err != nil {
+		return err
+	}
+	return db.InsertDeny(addr)
+}
+
+func removeDeny(c echo.Context) error {
+	addr, err := getFormValue(c, "address")
+	if err != nil {
+		return err
+	}
+	return db.DeleteDeny(addr)
+}
+
+func getDenyList(c echo.Context) error {
+	list, err := db.GetDenyList()
+	if err != nil {
+		return err
+	}
+	return c.JSON(OK, list)
 }
 
 // getFormValue gets the c.FormValue(key), trims its spaces,

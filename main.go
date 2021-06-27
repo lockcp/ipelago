@@ -30,6 +30,9 @@ func main() {
 	api.POST("/update-island", updateIsland)
 	api.POST("/delete-island", deleteIsland)
 	api.POST("/delete-message", deleteMessage)
+	api.POST("/deny-island", denyIsland)
+	api.POST("/remove-deny", removeDeny)
+	api.GET("/get-denylist", getDenyList)
 
 	e.Logger.Fatal(e.Start(*addr))
 }

@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS message
 CREATE INDEX IF NOT EXISTS idx_message_time ON message(time);
 CREATE INDEX IF NOT EXISTS idx_message_id_time ON message(id, time);
 
+CREATE TABLE IF NOT EXISTS denylist
+(
+  ctime      int     PRIMARY KEY,
+  address    text    NOT NULL UNIQUE
+);
+
 CREATE TABLE IF NOT EXISTS metadata
 (
   name         text    NOT NULL UNIQUE,
@@ -55,49 +61,61 @@ const GetTextValue = `SELECT text_value FROM metadata WHERE name=?;`
 const UpdateTextValue = `UPDATE metadata SET text_value=? WHERE name=?;`
 
 const GetIslandByID = `
-    SELECT id, name, email, avatar, link, address, note, status, checked
-    FROM island WHERE id=?;`
+  SELECT id, name, email, avatar, link, address, note, status, checked
+  FROM island WHERE id=?;`
 
 const AllIslands = `
-    SELECT id, name, email, avatar, link, address, note, status, checked
-    FROM island WHERE id<>? ORDER BY id DESC;`
+  SELECT id, name, email, avatar, link, address, note, status, checked
+  FROM island WHERE id<>? ORDER BY id DESC;`
 
 const GetMoreMessagesByIsland = `
-    SELECT id, island_id, time, body FROM message
-    WHERE island_id=? AND time<? ORDER BY time DESC LIMIT ?;`
+  SELECT id, island_id, time, body FROM message
+  WHERE island_id=? AND time<? ORDER BY time DESC LIMIT ?;`
 
 const GetMoreMessages = `
-    SELECT msg.id, island_id, msg.time, msg.body FROM message AS msg
-    INNER JOIN island ON msg.island_id = island.id
-    WHERE msg.time<? and island.status<>"unfollowed" ORDER BY msg.time DESC LIMIT ?;`
+  SELECT msg.id, island_id, msg.time, msg.body FROM message AS msg
+  INNER JOIN island ON msg.island_id = island.id
+  WHERE msg.time<? and island.status<>"unfollowed" ORDER BY msg.time DESC LIMIT ?;`
 
 const DeleteIsland = `
-    DELETE FROM island WHERE id=?;`
+  DELETE FROM island WHERE id=?;`
 
 const InsertIsland = `
-    INSERT INTO island (id, name, email, avatar, link, address, note, status, checked)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
+  INSERT INTO island (id, name, email, avatar, link, address, note, status, checked)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 const UpdateIsland = `
-    UPDATE island
-    SET name=?, email=?, avatar=?, link=?, status=?
-    WHERE id=?;`
+  UPDATE island
+  SET name=?, email=?, avatar=?, link=?, status=?
+  WHERE id=?;`
 
 const UpdateIslandChecked = `
-    UPDATE island SET checked=? WHERE id=?;`
+  UPDATE island SET checked=? WHERE id=?;`
 
 const SetStatus = `
-    UPDATE island SET status=? WHERE id=?;`
+  UPDATE island SET status=? WHERE id=?;`
 
 const UpdateNote = `
-    UPDATE island SET note=? WHERE id=?;`
+  UPDATE island SET note=? WHERE id=?;`
 
 const InsertMsg = `
-    INSERT INTO message (id, island_id, time, body)
-    VALUES (?, ?, ?, ?);`
+  INSERT INTO message (id, island_id, time, body)
+  VALUES (?, ?, ?, ?);`
 
 const DeleteMessage = `
-    DELETE FROM message WHERE id=?;`
+  DELETE FROM message WHERE id=?;`
 
 const CountMessages = `
-    SELECT count(*) FROM message WHERE island_id=?;`
+  SELECT count(*) FROM message WHERE island_id=?;`
+
+const InsertDeny = `
+  INSERT INTO denylist (ctime, address) VALUES (?, ?);`
+
+const CountDeny = `
+  SELECT count(*) FROM denylist WHERE address=?;`
+
+const DeleteDeny = `
+  DELETE FROM denylist WHERE address=?;`
+
+const GetDenyList = `
+  SELECT address FROM denylist ORDER BY ctime DESC;`

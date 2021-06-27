@@ -130,7 +130,7 @@ func insertFirsstMsg(tx TX, name string) error {
 func getMessages(tx TX, query string, args ...interface{}) (messages []*Message, err error) {
 	rows, err := tx.Query(query, args...)
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer rows.Close()
 	for rows.Next() {

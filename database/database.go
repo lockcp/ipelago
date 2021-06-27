@@ -215,3 +215,33 @@ func (db *DB) DeleteMessage(id string) error {
 	}
 	return db.Exec(stmt.DeleteMessage, id)
 }
+
+func (db *DB) IsDeny(address string) (bool, error) {
+	n, err := getInt1(db.DB, stmt.CountDeny, address)
+	return n > 0, err
+}
+
+func (db *DB) InsertDeny(address string) error {
+	return db.Exec(stmt.InsertDeny, util.TimeNow(), address)
+}
+
+func (db *DB) DeleteDeny(address string) error {
+	return db.Exec(stmt.DeleteDeny, address)
+}
+
+func (db *DB) GetDenyList() (list []string, err error) {
+	rows, err := db.DB.Query(stmt.GetDenyList)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var addr string
+		if err = rows.Scan(&addr); err != nil {
+			return
+		}
+		list = append(list, addr)
+	}
+	err = rows.Err()
+	return
+}

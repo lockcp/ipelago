@@ -33,7 +33,14 @@ let lastTime;
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').addClass('display-6 my-5').text('My Messages');
+const PublishBtn = cc('button');
+const TitleArea = {
+  view: () => m('div').addClass('d-flex justify-content-start align-items-end my-5').append([
+    m('div').addClass('display-6').text('My Messages'),
+    m(PublishBtn).text('publish').attr({type:'button'})
+      .addClass('btn btn-outline-secondary btn-sm ms-2').hide(),
+  ]),
+};
 
 const MsgList = cc('ul');
 
@@ -82,27 +89,20 @@ const MsgPostArea = cc('div', null, [
 ]);
 
 const MoreBtn = cc('button');
-const PublishBtn = cc('button');
 const SubmitAlerts = CreateAlerts();
 
 const SubmitBtnArea = cc('p', null, [
-  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}),
-  m(PublishBtn).text('Publish').addClass('btn btn-secondary ms-2').attr({type:'button'}).click(() => {
-    ajax({method:'GET',url:'/api/publish-newsletter',alerts:SubmitAlerts,buttonID:PublishBtn.id},
-        () => {
-          window.location = '/public/publish.html';
-        });
-  }),
+  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}).hide(),
 ]);
 
 $('#root').append([
-  title,
+  m(TitleArea),
   m(Loading),
   m(MsgPostArea).hide(),
   m(Alerts).addClass('my-3'),
   m(MsgList),
   m(SubmitAlerts),
-  m(SubmitBtnArea).addClass('text-center my-5').hide(),
+  m(SubmitBtnArea).addClass('text-center my-5'),
 ]);
 
 init();
@@ -114,8 +114,11 @@ function init() {
           Alerts.insert('info', '没有任何消息，可能尚未建岛');
           return;
         }
+        if (messages.length > 10) {
+          $(MoreBtn.id).show();
+        }
+        $(PublishBtn.id).show();
         $(MsgPostArea.id).show();
-        $(SubmitBtnArea.id).show();
         window.setTimeout(() => { $(MsgInput.id).focus(); }, 500);
         MsgList.append(messages);
         lastTime = messages[messages.length-1].Time;
@@ -129,6 +132,12 @@ function init() {
                 }
                 MsgList.append(moreMessages);
                 lastTime = moreMessages[moreMessages.length-1].Time;
+              });
+        });
+        $(PublishBtn.id).click(() => {
+          ajax({method:'GET',url:'/api/publish-newsletter',alerts:SubmitAlerts,buttonID:PublishBtn.id},
+              () => {
+                window.location = '/public/publish.html';
               });
         });
       }, null, () => {
