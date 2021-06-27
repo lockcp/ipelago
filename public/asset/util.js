@@ -158,6 +158,9 @@ function CreateLogs() {
     const item = m('li').addClass(`text-${msgType}`).text(`${time} ${msg}`);
     $(self.id).prepend(item);
   }
+  self.clear = () => {
+    $(self.id).html('');
+  };
   return self;
 }
 

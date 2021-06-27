@@ -28,10 +28,18 @@
 
 <script>
 
+const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 const Logs = CreateLogs();
 
-const title = m('h1').addClass('display-6 my-5').text('Deny List (黑名单)');
+const TitleArea = {
+  view: () => m('div').addClass('d-flex justify-content-between align-items-center my-5').append([
+    m('div').attr({id:'title'}).addClass('display-6').text('Deny List (黑名单)'),
+    m('a').attr({href:'/public/home.html',title:'home'}).addClass('btn btn-outline-dark').append(
+      m('i').addClass('bi bi-house-door')
+    ),
+  ]),
+};
 
 const SubmitBtn = cc('button');
 const Addresses = cc('textarea');
@@ -60,10 +68,11 @@ DenyList.append = (islands) => {
 };
 
 $('#root').append([
-  title,
+  m(TitleArea),
   m(Alerts).addClass('my-3'),
   m(AddressesArea),
   m(Logs),
+  m(Loading),
   m(DenyList).addClass('my-5'),
 ]);
 
@@ -87,6 +96,8 @@ function init() {
           return;
         }
         DenyList.append(islands);
+      }, null, () => {
+        $(Loading.id).hide();
       });
 }
 

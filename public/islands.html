@@ -27,11 +27,28 @@ const Logs = CreateLogs();
 const UpdateBtn = cc('button');
 const TitleArea = {
   view: () => m('div').addClass('d-flex justify-content-start align-items-end my-5').append([
-    m('div').addClass('display-6').text('Islands in iPelago'),
+    m('div').addClass('display-6').text('Follow Islands'),
     m(UpdateBtn).text('update all').attr({type:'button'})
       .addClass('btn btn-outline-secondary btn-sm ms-2').hide(),
+    m('a').attr({href:'/public/home.html',title:'home'})
+      .addClass('btn btn-outline-secondary btn-sm ms-2').append(
+        m('i').addClass('bi bi-house-door')
+    ),
   ]),
 };
+
+const SubmitBtn = cc('button');
+const Addresses = cc('textarea');
+const AddressesArea = cc('div', null, [
+  m('p').text('请把小岛地址粘贴到下面的文本框中，一行一个地址。然后点击 Submit 按钮。'),
+  m(Addresses).addClass('form-control').on('input', () => {
+    const self = $(Addresses.id);
+    self.css('height', self.prop('scrollHeight'));
+  }),
+  m('p').addClass('text-center my-3').append(
+    m(SubmitBtn).text('Submit').attr({type:'button'}).addClass('btn btn-primary')
+  ),
+]);
 
 const IslandList = cc('div');
 
@@ -50,10 +67,11 @@ IslandList.append = (islands) => {
 
 $('#root').append([
   m(TitleArea),
-  m(Loading),
   m(Alerts).addClass('my-3'),
+  m(AddressesArea),
   m(Logs),
-  m(IslandList),
+  m(Loading),
+  m(IslandList).addClass('mt-5'),
 ]);
 
 init();
@@ -75,6 +93,17 @@ function init() {
       }, null, () => {
         $(Loading.id).hide();
       });
+
+  $(SubmitBtn.id).click(() => {
+    disable(SubmitBtn.id);
+
+    const addresses = $(Addresses.id).val().split('\n')
+      .map(item => item.trim())
+      .filter(item => item.length > 0);
+
+    followIslands(addresses);
+    // 在 followIslands 之后如果有代码，会立即执行，不会等待 followIslands。
+  });
 }
 
 function pairs(items) {
@@ -163,10 +192,12 @@ function IslandItem(island) {
 async function updateIslands(islands) {
   for (let i=0; i<islands.length; i++) {
     const island = islands[i];
+    Logs.insert('dark', '正在更新小岛: ' + island.Address);
+
     if (island.Status == 'unfollowed') {
+      Logs.insert('dark', '自动忽略: ' + island.Name);
       continue;
     }
-    Logs.insert('dark', '正在更新小岛: ' + island.Address);
 
     const Hour = 60 * 60;
     if (dayjs().unix() - island.Checked < 24*Hour) {
@@ -209,6 +240,52 @@ function updateIsland(id) {
           // onAlways
           window.clearTimeout(timeout);
         });
+  });
+}
+
+async function followIslands(islands) {
+  for (let i=0; i<islands.length; i++) {
+    Logs.insert('dark', '正在尝试订阅: ' + islands[i]);
+    try {
+      const name = await follow(islands[i]);
+      Logs.insert('success', '订阅成功: ' + name);
+    } catch (error) {
+      if (error.indexOf("UNIQUE constraint failed: island.address") >= 0) {
+        // 忽略已订阅的小岛
+        Logs.insert('dark', '自动忽略: ' + islands[i]);
+        continue;
+      }
+      if (error.indexOf("DENY")) {
+        // 忽略已屏蔽的小岛
+        Logs.insert('dark', '自动忽略: ' + islands[i]);
+        continue;
+      }
+      Logs.insert('danger', error);
+    }
+  }
+  Logs.insert('primary', `处理完成，结果如下所示：`);
+  enable(SubmitBtn.id);
+}
+
+function follow(islandAddr) {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(Error('timeout'));
+    }, 10*1000);
+
+    const body = new FormData();
+    body.set('address', islandAddr);
+    ajax({method:'POST',url:'/api/follow-island',body:body}, (name) => {
+      // onSuccess
+      resolve(name);
+    }, (that) => {
+      // onError
+      const errMsg = `${that.status} ${that.responseText}`;
+      reject(errMsg);
+    }, () => {
+      // onAlways
+      window.clearTimeout(timeout);
+    });
   });
 }
 

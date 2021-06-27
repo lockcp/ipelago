@@ -23,7 +23,14 @@
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').attr({id:'title'}).text('建岛').addClass('display-6 my-5');
+const TitleArea = {
+  view: () => m('div').addClass('d-flex justify-content-between align-items-center my-5').append([
+    m('div').attr({id:'title'}).addClass('display-6').text('建岛'),
+    m('a').attr({href:'/public/home.html',title:'home'}).addClass('btn btn-outline-dark').append(
+      m('i').addClass('bi bi-house-door')
+    ),
+  ]),
+};
 
 const NameInput = cc('input');
 const AvatarInput = cc('input');
@@ -57,6 +64,7 @@ const Form = cc('div', null, [
 const CreateBtn = cc('button');
 const UpdateBtn = cc('button');
 const MsgBtn = cc('a');
+const PublishBtn = cc('button');
 
 const SubmitBtnArea = cc('p', null, [
   m(CreateBtn).text('Create').addClass('btn btn-primary').attr({type:'button'})
@@ -68,6 +76,7 @@ const SubmitBtnArea = cc('p', null, [
             $(CreateBtn.id).toggle();
             $(UpdateBtn.id).toggle();
             $(MsgBtn.id).toggle();
+            $(PublishBtn.id).toggle();
           });
   }),
   m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'})
@@ -80,10 +89,16 @@ const SubmitBtnArea = cc('p', null, [
     }),
   m(MsgBtn).text('Messages').addClass('btn btn-secondary ms-2')
     .attr({type:'button',href:'/public/my-messages.html'}).hide(),
+  m(PublishBtn).text('publish').addClass('btn btn-secondary ms-2').hide().click(() => {
+    ajax({method:'GET',url:'/api/publish-newsletter',alerts:Alerts,buttonID:PublishBtn.id},
+        () => {
+          window.location = '/public/publish.html';
+        });
+  }),
 ]);
 
 $('#root').append([
-  title,
+  m(TitleArea),
   m(Loading),
   m(Form).addClass('mt-5').hide(),
   m(Alerts).addClass('my-3'),
@@ -95,11 +110,12 @@ init();
 function init() {
   ajax({method:'GET',url:'/api/get-my-island',alerts:Alerts},
       (island) => {
-        $('#title').text('我的小岛');
         $(Form.id).show();
         if (island.ID) {
+          $('#title').text('我的小岛');
           $(UpdateBtn.id).show();
           $(MsgBtn.id).show();
+          $(PublishBtn.id).show();
           $(NameInput.id).val(island.Name);
           $(EmailInput.id).val(island.Email);
           $(AvatarInput.id).val(island.Avatar);

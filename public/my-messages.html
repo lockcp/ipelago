@@ -12,6 +12,7 @@
   <script src="/public/asset/dayjs.min.js"></script>
   <script src="/public/asset/bootstrap.bundle.min.js"></script>
   <script src="/public/asset/util.js"></script>
+  <script src="/public/asset/my-messages.js"></script>
   
   <title>My Messages - iPelago</title>
   <style>
@@ -39,6 +40,10 @@ const TitleArea = {
     m('div').addClass('display-6').text('My Messages'),
     m(PublishBtn).text('publish').attr({type:'button'})
       .addClass('btn btn-outline-secondary btn-sm ms-2').hide(),
+    m('a').attr({href:'/public/home.html',title:'home'})
+      .addClass('btn btn-outline-secondary btn-sm ms-2').append(
+        m('i').addClass('bi bi-house-door')
+    ),
   ]),
 };
 
@@ -53,40 +58,6 @@ MsgList.append = (messages) => {
     $(MsgList.id).append(m(item));
   });
 };
-
-const MsgInput = cc('textarea');
-const PostBtn = cc('button');
-const MsgPostArea = cc('div', null, [
-  m(MsgInput).addClass('form-control'),
-  m('p').addClass('text-end mt-2').append(
-    m(PostBtn).text('Post').addClass('btn btn-outline-primary').attr({type:'button'}).click(() => {
-      const msgBody = $(MsgInput.id).val().trim();
-      if (!msgBody) {
-        $(MsgInput.id).focus();
-        return;
-      }
-      const bodySize = new Blob([msgBody]).size;
-      if (bodySize > 1024) {
-        Alerts.insert('danger', `消息体积(${bodySize} bytes) 超过上限 1024 bytes`);
-        $(MsgInput.id).focus();
-        return;        
-      }
-      const body = new FormData();
-      body.set('msg-body', msgBody);
-      ajax({method:'POST',url:'/api/post-message',alerts:Alerts,buttonID:PostBtn.id,body:body},
-          (msgID) => {
-            const msg = {
-              ID: msgID,
-              Time: dayjs().unix(),
-              Body: msgBody,
-            };
-            const item = MsgItem(msg);
-            $(MsgList.id).prepend(m(item));
-            $(MsgInput.id).val('').focus();
-          });
-    }),
-  ),
-]);
 
 const MoreBtn = cc('button');
 const SubmitAlerts = CreateAlerts();
@@ -176,6 +147,9 @@ function MsgItem(msg) {
       m(ItemAlerts),
     ]),
   ]);
+
+  // 接口要求有 init 函数。
+  self.init = () => {};
 
   return self;
 }

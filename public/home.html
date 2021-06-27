@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  
+  <link rel="stylesheet" href="/public/asset/bootstrap.min.css">
+  <link rel="stylesheet" href="/public/asset/bootstrap-icons-141.css">
+  <link rel="stylesheet" href="/public/asset/style.css">
+  
+  <script src="/public/asset/jquery.min.js"></script>
+  <script src="/public/asset/dayjs.min.js"></script>
+  <script src="/public/asset/bootstrap.bundle.min.js"></script>
+  <script src="/public/asset/util.js"></script>
+  
+  <title>Home - iPelago</title>
+</head>
+<body>
+  <div id="root" class="container" style="max-width: 775px; min-width: 400px;"></div>
+
+<script>
+
+const title = m('div').attr({id:'title'}).text('iPelago').addClass('display-6 my-5 text-center');
+
+$('#root').append([
+  title,
+  m('div').append([
+    create_item('Timeline', '/public/timeline.html', '最新消息'),
+    create_item('My Island', '/public/my-island-info.html', '我的小岛(建岛)'),
+    create_item('Follow Islands', '/public/islands.html', '订阅小岛'),
+    create_item('Deny List', '/public/deny-islands.html', '屏蔽小岛'),
+  ]),
+  m('p').addClass('small text-secondary text-center my-5').append([
+    'iPelago beta: 2021-06-27',
+    m('br'),
+    m('a').text('https://github.com/ahui2016/ipelago').addClass('small text-secondary')
+      .attr({href:'https://github.com/ahui2016/ipelago',target:'_blank'}),
+    m('i').addClass('small bi bi-box-arrow-up-right ms-1'),
+  ]),
+]);
+
+function create_item(text, link, description) {
+  return m('div').addClass('row mb-2 g-1').append([
+    m('div').addClass('col text-end').append(
+      m('a').text(text).attr({href:link}).addClass('text-decoration-none'),
+    ),
+    m('div').addClass('col').text(description),
+  ]);
+}
+
+</script>
+</body>
+</html>
