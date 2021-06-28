@@ -10,7 +10,7 @@ func main() {
 
 	e.Static("/public", "public")
 
-	e.File("/", "public/my-island-info.html")
+	e.File("/", "public/home.html")
 
 	api := e.Group("/api", sleep)
 	api.GET("/get-my-island", getMyIsland)

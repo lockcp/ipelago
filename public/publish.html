@@ -24,7 +24,14 @@
 const Loading = CreateLoading();
 const Alerts = CreateAlerts();
 
-const title = m('h1').attr({id:'title'}).text('Publish').addClass('display-6 my-5');
+const TitleArea = {
+  view: () => m('div').addClass('d-flex justify-content-between align-items-center my-5').append([
+    m('div').attr({id:'title'}).addClass('display-6').text('Publish'),
+    m('a').attr({href:'/public/home.html',title:'home'}).addClass('btn btn-outline-dark').append(
+      m('i').addClass('bi bi-house-door')
+    ),
+  ]),
+};
 
 const CopyBtn = cc('button', 'copy');
 const DownloadBtn = cc('a');
@@ -32,12 +39,14 @@ const ButtonsArea = cc('div', null, [
   m(CopyBtn).text('Copy').addClass('btn btn-outline-primary').attr({type:'button'}),
   m(DownloadBtn).text('Download').addClass('btn btn-outline-primary ms-2')
     .attr({type:'button',download:'newsletter.json',href:'/public/newsletter.json'}),
+  m('a').text('Edit').addClass('btn btn-outline-secondary ms-2')
+    .attr({href:'/public/my-messages.html'}),
 ]);
 
 const Newsletter = cc('textarea');
 
 $('#root').append([
-  title,
+  m(TitleArea),
   m(Loading),
   m(ButtonsArea).hide(),
   m(Newsletter).addClass('mt-3 form-control').hide(),

@@ -33,6 +33,8 @@ const TitleArea = {
     m('div').addClass('display-6').text('Timeline'),
     m(UpdateBtn).text('update').attr({type:'button'})
       .addClass('btn btn-outline-secondary btn-sm ms-2'),
+    m('a').text('publish').attr({href:'/public/my-messages.html'})
+      .addClass('btn btn-outline-secondary btn-sm ms-2'),
     m('a').attr({href:'/public/home.html',title:'home'})
       .addClass('btn btn-outline-secondary btn-sm ms-2').append(
         m('i').addClass('bi bi-house-door')

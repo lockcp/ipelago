@@ -20,18 +20,21 @@
 
 <script>
 
-const title = m('div').attr({id:'title'}).text('iPelago').addClass('display-6 my-5 text-center');
+const title = m('div').attr({id:'title'}).addClass('display-6 my-5 text-center').append([
+  'iPelago', m('sup').text('beta'),
+]);
 
 $('#root').append([
   title,
   m('div').append([
     create_item('Timeline', '/public/timeline.html', '最新消息'),
-    create_item('My Island', '/public/my-island-info.html', '我的小岛(建岛)'),
+    create_item('My Island', '/public/my-island-info.html', '我的小岛'),
     create_item('Follow Islands', '/public/islands.html', '订阅小岛'),
     create_item('Deny List', '/public/deny-islands.html', '屏蔽小岛'),
+    create_item('Help', '', '使用说明'),
   ]),
   m('p').addClass('small text-secondary text-center my-5').append([
-    'iPelago beta: 2021-06-27',
+    'version 2021-06-27',
     m('br'),
     m('a').text('https://github.com/ahui2016/ipelago').addClass('small text-secondary')
       .attr({href:'https://github.com/ahui2016/ipelago',target:'_blank'}),
