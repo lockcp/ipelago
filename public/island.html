@@ -28,6 +28,8 @@
 const idForm = new FormData();
 idForm.set('id', getUrlParam('id'));
 
+let addrForm = new FormData();
+
 let oldNote;
 let lastTime;
 
@@ -133,7 +135,7 @@ InfoCard.init = (island) => {
     }),
     ' ',
     m(DeleteBtn).addClass('bi bi-trash').attr({title:'delete'}).hide().click(() => {
-      Alerts.insert('primary', `请按 F12 进入网页控制台，输入命令 delete_island() 按回车即可删除【${island.Name}】及其全部消息。`);
+      Alerts.insert('primary', `请按 F12 进入网页控制台，输入命令 delete_island() 按回车即可删除【${island.Name}】及其全部消息。输入命令 deny_island() 可屏蔽该岛（拉黑），而输入命令 delete_and_deny() 则可同时删除及拉黑。`);
     }),
   ]);
 
@@ -238,10 +240,11 @@ $('#root').append([
 init();
 
 function init() {
-  island_id = getUrlParam('id');
+  const island_id = getUrlParam('id');
 
   ajax({method:'GET',url:'/api/get-island/'+island_id,alerts:Alerts},
       (island) => {
+        addrForm.set('address', island.Address);
         oldNote = island.Note;
         $('title').text(`${island.Name} in iPelago`);
         $(InfoCard.id).show();
@@ -295,7 +298,11 @@ function MsgItem(msg) {
   return self;
 }
 
-function delete_island() {
+function delete_and_deny() {
+  delete_island(true);
+}
+
+function delete_island(deny) {
   ajax({method:'POST',url:'/api/delete-island',alerts:Alerts,body:idForm},
       () => {
         $(FollowAgainBtn.id).hide();
@@ -305,6 +312,28 @@ function delete_island() {
         Alerts.clear();
         Alerts.insert('success', msg);
         console.log(msg);
+        if (deny) {
+          deny_island();
+        }
+      });
+}
+
+function deny_island(islandAddr) {
+  const showSuccess = () => {
+    const msg = '该岛已被添加到黑名单。';
+    Alerts.insert('success', msg);
+    console.log(msg);
+  };
+  ajax({method:'POST',url:'/api/deny-island',alerts:Alerts,body:addrForm},
+      () => {
+        showSuccess();
+      }, (that) => {
+        if (that.responseText.indexOf("UNIQUE constraint failed: denylist.address") >= 0) {
+          showSuccess();
+        } else {
+          Alerts.insert('danger', that.responseText);
+          console.log(that.responseText);
+        }
       });
 }
 

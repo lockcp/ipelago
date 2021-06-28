@@ -53,6 +53,10 @@ function ajax(options, onSuccess, onFail, onAlways) {
         onSuccess(resp);
       }
     } else {
+      if (onFail) {
+        onFail(this);
+        return;
+      }
       let msg;
       try {
         const resp = JSON.parse(this.responseText);
@@ -65,7 +69,6 @@ function ajax(options, onSuccess, onFail, onAlways) {
       } else {
         console.log(msg);
       }
-      if (onFail) onFail(this);
     }
   });
   xhr.addEventListener('loadend', function() {
