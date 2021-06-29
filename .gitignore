@@ -1,4 +1,4 @@
 
 *.exe
 ipelago.db
-public/newsletter*
+public/*newsletter*

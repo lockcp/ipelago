@@ -1,5 +1,7 @@
 "use strict"
 
+const httpRegex = /https?:\/\/[^\s,()!]+/;
+
 // make a new vnode by name, or return its view.
 function m(name) {
   if (jQuery.type(name) == 'string') {

@@ -19,6 +19,9 @@
     .bi {
       cursor: pointer;
     }
+    .bi-trash {
+      color: #ccc;
+    }
     .bi-trash:hover {
       color: red;
     }
@@ -29,6 +32,7 @@
 
 <script>
 
+let myAvatar;
 let lastTime;
 
 const Loading = CreateLoading();
@@ -78,7 +82,8 @@ $('#root').append([
 
 init();
 
-function init() {
+async function init() {
+  await initMyAvatar();
   ajax({method:'GET',url:'/api/more-my-messages',alerts:Alerts},
       (messages) => {
         if (!messages || messages.length == 0) {
@@ -121,12 +126,23 @@ function itemID(id) {
 }
 
 function MsgItem(msg) {
+  let contentsElem;
+  const httpLink = msg.Body.match(httpRegex);
+  if (!httpLink) {
+    contentsElem = msg.Body;
+  } else {
+    contentsElem = [
+      msg.Body.substring(0, httpLink.index),
+      m('a').text(httpLink[0]).attr({href:httpLink[0],target:'_blank'}),
+      msg.Body.substring(httpLink.index + httpLink[0].length),
+    ];
+  }
   const datetime = dayjs.unix(msg.Time).format('YYYY-MM-DD HH:mm:ss');
   const ItemAlerts = CreateAlerts();
   const self = cc('div', itemID(msg.ID))
 
   self.view = () => m('li').attr({id:self.raw_id}).addClass('list-group-item d-flex justify-content-start align-items-start MsgItem mb-3').append([
-    m('img').addClass('Avatar').attr({src:'/public/avatars/default.jpg'}),
+    m('img').addClass('Avatar').attr({src:myAvatar}),
     m('div').addClass('ms-3 flex-fill').append([
       m('div').addClass('Datetime small text-muted').append([
         m('span').text(datetime),
@@ -137,13 +153,14 @@ function MsgItem(msg) {
           ajax({method:'POST',url:'/api/delete-message',alerts:ItemAlerts,buttonID:`${self.id} .bi-trash`,body:body},
               () => {
                 $(self.id).find('.Contents').addClass('text-muted');
+                $(`${self.id} a`).removeAttr('href');
                 $(self.id).find('.Deleted').toggle();
                 $(self.id).find('.bi-trash').toggle();
                 $(self.id).find('.Avatar').css('filter', 'opacity(0.5) grayscale(1)');
               });
         }),
       ]),
-      m('span').addClass('Contents').text(msg.Body),
+      m('div').addClass('Contents').append(contentsElem),
       m(ItemAlerts),
     ]),
   ]);
@@ -152,6 +169,16 @@ function MsgItem(msg) {
   self.init = () => {};
 
   return self;
+}
+
+function initMyAvatar() {
+  return new Promise(resolve => {
+    ajax({method:'GET',url:'/api/get-island/My-Island-ID',alerts:Alerts},
+      (island) => {
+        myAvatar = island.Avatar ? island.Avatar : '/public/avatars/default.jpg';
+        resolve();
+      });
+  })
 }
 
 </script>

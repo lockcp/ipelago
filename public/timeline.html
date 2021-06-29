@@ -129,7 +129,7 @@ function MsgItem(msg) {
     m('a').addClass('AvatarLink').append( m('img').addClass('Avatar') ),
     m('div').addClass('ms-3 flex-fill').append([
       m('p').addClass('Name'),
-      m('span').addClass('Contents').text(msg.Body),
+      m('div').addClass('Contents'),
       m('div').addClass('Datetime small text-muted text-end').text(datetime),
       m(ItemAlerts),
     ]),
@@ -156,6 +156,17 @@ function MsgItem(msg) {
     if (island.Email) {
       $(self.id).find('.Name').append([
         m('span').addClass('small text-muted').text(` (${island.Email})`),
+      ]);
+    }
+    const contentsElem = $(self.id).find('.Contents');
+    const httpLink = msg.Body.match(httpRegex);
+    if (!httpLink) {
+      contentsElem.text(msg.Body);
+    } else {
+      contentsElem.append([
+        msg.Body.substring(0, httpLink.index),
+        m('a').text(httpLink[0]).attr({href:httpLink[0],target:'_blank'}),
+        msg.Body.substring(httpLink.index + httpLink[0].length),
       ]);
     }
   };
