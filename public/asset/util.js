@@ -38,46 +38,75 @@ function enable(id) {
 
 // options = { method, url, body, alerts, buttonID, responseType }
 function ajax(options, onSuccess, onFail, onAlways) {
+  const handleErr = (errMsg) => {
+    if (onFail) {
+      onFail(errMsg);
+      return;
+    }
+    if (options.alerts) {
+      options.alerts.insert('danger', errMsg);
+    } else {
+      console.log(errMsg);
+    }
+  }
+
   if (options.buttonID) disable(options.buttonID);
+
   const xhr = new XMLHttpRequest();
+
+  if (options.responseType) {
+    xhr.responseType = options.responseType;
+  } else {
+    xhr.responseType = 'json';
+  }
+
   xhr.open(options.method, options.url);
+
   xhr.onerror = () => {
-    window.alert('An error occurred during the transaction');
+    const errMsg = 'An error occurred during the transaction';
+    handleErr(errMsg);
   };
+
   xhr.addEventListener('load', function() {
     if (this.status == 200) {
-      if (onSuccess) {
-        if (options.responseType && options.responseType == 'text') {
-          onSuccess(this.responseText);
-          return;
-        }
-        const resp = this.responseText ? JSON.parse(this.responseText) : null;
-        onSuccess(resp);
-      }
+      onSuccess(this.response);
     } else {
-      if (onFail) {
-        onFail(this);
-        return;
-      }
-      let msg;
-      try {
-        const resp = JSON.parse(this.responseText);
-        msg = resp.message ? resp.message : `${this.status} ${this.responseText}`;
-      } catch {
-        msg = `${this.status} ${this.responseText}`;
-      }
-      if (options.alerts) {
-        options.alerts.insert('danger', msg);
+      let errMsg;
+      if (this.response && this.response.message) {
+        errMsg = `${this.status} ${this.response.message}`;
       } else {
-        console.log(msg);
+        errMsg = `${this.status} ${this.responseText}`
       }
+      handleErr(errMsg);
     }
   });
+
   xhr.addEventListener('loadend', function() {
     if (options.buttonID) enable(options.buttonID);
     if (onAlways) onAlways(this);
   });
+
   xhr.send(options.body);
+}
+
+function ajaxPromise(options, n) {
+  const second = 1000;
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject('timeout');
+    }, n*second);
+
+    ajax(options, (result) => {
+      // onSuccess
+      resolve(result);
+    }, (errMsg) => {
+      // onError
+      reject(errMsg);
+    }, () => {
+      // onAlways
+      window.clearTimeout(timeout);
+    });
+  });
 }
 
 // 获取地址栏的参数。

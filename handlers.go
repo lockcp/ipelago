@@ -118,7 +118,7 @@ func postMessage(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.JSON(OK, msg.ID)
+	return c.JSON(OK, Text{msg.ID})
 }
 
 func publishNewsletter(c echo.Context) error {
@@ -141,7 +141,7 @@ func followIsland(c echo.Context) (err error) {
 	if err := db.InsertIsland(address, &news); err != nil {
 		return err
 	}
-	return c.JSON(OK, news.Name)
+	return c.JSON(OK, Text{news.Name})
 }
 
 func updateIsland(c echo.Context) error {
@@ -307,8 +307,14 @@ func getFormMyIsland(c echo.Context) (island *Island, err error) {
 		return
 	}
 	email := strings.TrimSpace((c.FormValue("email")))
-	avatar := strings.TrimSpace(c.FormValue("avatar"))
 	link := strings.TrimSpace(c.FormValue("link"))
+	avatar := strings.TrimSpace(c.FormValue("avatar"))
+
+	if avatar != "" {
+		if err = checkAvatarSize(avatar); err != nil {
+			return
+		}
+	}
 
 	island = &Island{
 		ID:     database.MyIslandID,
@@ -318,4 +324,34 @@ func getFormMyIsland(c echo.Context) (island *Island, err error) {
 		Link:   link,
 	}
 	return
+}
+
+func checkAvatarSize(avatar string) (err error) {
+	done := make(chan bool, 1)
+
+	var res *http.Response
+	go func() {
+		res, err = http.Get(avatar)
+		done <- true
+	}()
+
+	var blob []byte
+	select {
+	case <-done:
+		if err != nil { // 注意这个 err 是最外层那个 err
+			return
+		}
+		defer res.Body.Close()
+
+		blob, err = io.ReadAll(io.LimitReader(res.Body, model.AvatarSizeLimit+model.KB))
+		if err != nil {
+			return
+		}
+		if len(blob) > model.AvatarSizeLimit {
+			return fmt.Errorf("the size exceeds the limit (500KB)")
+		}
+		return nil
+	case <-time.After(10 * time.Second):
+		return fmt.Errorf("timeout")
+	}
 }

@@ -130,9 +130,8 @@ function denyOne(islandAddr) {
     ajax({method:'POST',url:'/api/deny-island',body:body}, () => {
       // onSuccess
       resolve();
-    }, (that) => {
+    }, (errMsg) => {
       // onError
-      const errMsg = `${that.status} ${that.responseText}`;
       reject(errMsg);
     }, () => {
       // onAlways

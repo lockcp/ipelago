@@ -19,9 +19,9 @@ const MsgPostArea = cc('div', null, [
       const body = new FormData();
       body.set('msg-body', msgBody);
       ajax({method:'POST',url:'/api/post-message',alerts:Alerts,buttonID:PostBtn.id,body:body},
-          (msgID) => {
+          (resp) => {
             const msg = {
-              ID: msgID,
+              ID: resp.message,
               Time: dayjs().unix(),
               Body: msgBody,
             };

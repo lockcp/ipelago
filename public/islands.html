@@ -57,10 +57,10 @@ IslandList.append = (islands) => {
   const islandPairs = pairs(islands); // 两个一行，为了方便先组对。
   islandPairs.forEach(pair => {
     const row = cc('div');
-    $(IslandList.id).append(m(row).addClass('row'));
+    $(IslandList.id).append(m(row).addClass('row my-3'));
     pair.forEach(island => {
       const item = IslandItem(island);
-      $(row.id).append(m('div').addClass('col-md-6 my-2').append(m(item)));
+      $(row.id).append(m('div').addClass('col-md-6 my-1').append(m(item)));
       item.init();
     });
   });
@@ -72,7 +72,7 @@ $('#root').append([
   m(AddressesArea),
   m(Logs),
   m(Loading),
-  m(IslandList).addClass('mt-5'),
+  m(IslandList).addClass('my-5'),
 ]);
 
 init();
@@ -105,6 +105,8 @@ function init() {
     followIslands(addresses);
     // 在 followIslands 之后如果有代码，会立即执行，不会等待 followIslands。
   });
+
+  window.setTimeout(() => { $(Addresses.id).focus() }, 1000);
 }
 
 function pairs(items) {
@@ -233,9 +235,8 @@ function updateIsland(id) {
         // onSuccess
         (island) => {
           resolve(island.Status);
-        }, (that) => {
+        }, (errMsg) => {
           // onError
-          const errMsg = `${that.status} ${that.responseText}`;
           reject(errMsg);
         }, () => {
           // onAlways

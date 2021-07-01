@@ -52,12 +52,12 @@ const Form = cc('div', null, [
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:AvatarInput.id}).text('Avatar'),
     m(AvatarInput).addClass('form-control').attr({type:'text'}),
-    m('div').addClass('form-text').text('头像图片的网址，头像图片应为正方形，建议头像体积控制在 50KB 以下。请确保头像图片能跨域访问。(可留空)'),
+    m('div').addClass('form-text').text('头像图片的网址，头像图片应为正方形，建议头像体积控制在 100KB 以下。请确保头像图片能跨域访问。(可留空)'),
   ]),
   m('div').addClass('mb-3').append([
     m('label').addClass('form-label fw-bold').attr({for:LinkInput.id}).text('Link'),
     m(LinkInput).addClass('form-control').attr({type:'text'}),
-    m('div').addClass('form-text').text('一个网址，建议填写小岛的网页版，也可填写博客或其他社交帐号的网址。(可留空)'),
+    m('div').addClass('form-text').text('一个网址，可以是你的个人网站或博客，也可填写其他社交帐号的网址。(可留空)'),
   ]),
 ]);
 
@@ -68,24 +68,34 @@ const PublishBtn = cc('button');
 
 const SubmitBtnArea = cc('p', null, [
   m(CreateBtn).text('Create').addClass('btn btn-primary').attr({type:'button'})
-    .hide().click(() => {
-      const body = newIslandForm();
-      ajax({method:'POST',url:'/api/create-my-island',alerts:Alerts,buttonID:CreateBtn.id,body:body},
+    .hide().click(async () => {
+      try {
+        const body = await newIslandForm();
+        ajax({method:'POST',url:'/api/create-my-island',alerts:Alerts,buttonID:CreateBtn.id,body:body},
           () => {
             Alerts.insert('success', '建岛成功');
             $(CreateBtn.id).toggle();
             $(UpdateBtn.id).toggle();
             $(MsgBtn.id).toggle();
             $(PublishBtn.id).toggle();
-          });
+          });        
+      } catch (errMsg) {
+        Alerts.insert('danger', errMsg);
+        return;
+      }
   }),
   m(UpdateBtn).text('Update').addClass('btn btn-primary').attr({type:'button'})
-    .hide().click(() => {
-      const body = newIslandForm();
-      ajax({method:'POST',url:'/api/update-my-island',alerts:Alerts,buttonID:UpdateBtn.id,body:body},
+    .hide().click(async () => {
+      try {
+        const body = await newIslandForm();
+        ajax({method:'POST',url:'/api/update-my-island',alerts:Alerts,buttonID:UpdateBtn.id,body:body},
           () => {
             Alerts.insert('success', '更新成功');
           });
+      } catch (errMsg) {
+        Alerts.insert('danger', errMsg);
+        return;
+      }
     }),
   m(MsgBtn).text('Messages').addClass('btn btn-secondary ms-2')
     .attr({type:'button',href:'/public/my-messages.html'}).hide(),
@@ -128,13 +138,34 @@ function init() {
       });
 }
 
-function newIslandForm() {
+async function newIslandForm() {
+  let avatarAddr;
+  try {
+    avatarAddr = $(AvatarInput.id).val();
+    await checkAvatarSize(avatarAddr);    
+  } catch (errMsg) {
+    if (errMsg.indexOf('error occurred during the transaction') >= 0) {
+      errMsg = '无法访问头像图片(请确保可跨域访问): ' + errMsg;
+    }
+    throw errMsg;
+  }
   const body = new FormData();
   body.set('name', $(NameInput.id).val());
   body.set('email', $(EmailInput.id).val());
-  body.set('avatar', $(AvatarInput.id).val());
+  body.set('avatar', avatarAddr);
   body.set('link', $(LinkInput.id).val());
   return body;
+}
+
+async function checkAvatarSize(avatarAddr) {
+  try {
+    const avatar = await ajaxPromise({method:'GET',url:avatarAddr,responseType:'blob'}, 10);
+    if (avatar && avatar.size > 500 * 1024) {
+      throw '更新失败: 头像图片体积太大';
+    }
+  } catch (errMsg) {
+    throw errMsg;
+  }
 }
 
 </script>

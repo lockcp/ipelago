@@ -150,17 +150,17 @@ InfoCard.init = (island) => {
     toggleUnfollow();
   }
 
-  nameElem.append([
-    m('br'),
-    m('span').addClass('small text-muted').text(island.Address),
-  ]);
-
   if (island.Email) {
     nameElem.append([
       m('br'),
       m('span').addClass('small text-muted').text(island.Email),
     ]);
   }
+
+  nameElem.append([
+    m('br'),
+    m('span').addClass('small text-muted').text(island.Address),
+  ]);
 
   if (island.Link) {
     nameElem.append([
@@ -327,12 +327,12 @@ function deny_island(islandAddr) {
   ajax({method:'POST',url:'/api/deny-island',alerts:Alerts,body:addrForm},
       () => {
         showSuccess();
-      }, (that) => {
-        if (that.responseText.indexOf("UNIQUE constraint failed: denylist.address") >= 0) {
+      }, (errMsg) => {
+        if (errMsg.indexOf("UNIQUE constraint failed: denylist.address") >= 0) {
           showSuccess();
         } else {
-          Alerts.insert('danger', that.responseText);
-          console.log(that.responseText);
+          Alerts.insert('danger', errMsg);
+          console.log(errMsg);
         }
       });
 }

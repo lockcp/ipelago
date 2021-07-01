@@ -192,8 +192,7 @@ function getIslandByID(id) {
     ajax({method:'GET',url:'/api/get-island/'+id},
         (island) => {
           resolve(island);
-        }, (that) => {
-          const errMsg = `${that.status} ${that.responseText}`;
+        }, (errMsg) => {
           reject(errMsg);
         });
   });
@@ -248,9 +247,8 @@ function updateIsland(id) {
         // onSuccess
         (island) => {
           resolve(island.Status);
-        }, (that) => {
+        }, (errMsg) => {
           // onError
-          const errMsg = `${that.status} ${that.responseText}`;
           reject(errMsg);
         }, () => {
           // onAlways

@@ -24,23 +24,8 @@ async function followIslands(islands) {
 }
 
 function follow(islandAddr) {
-  return new Promise((resolve, reject) => {
-    const timeout = window.setTimeout(() => {
-      reject(Error('timeout'));
-    }, 10*1000);
-
-    const body = new FormData();
-    body.set('address', islandAddr);
-    ajax({method:'POST',url:'/api/follow-island',body:body}, (name) => {
-      // onSuccess
-      resolve(name);
-    }, (that) => {
-      // onError
-      const errMsg = `${that.status} ${that.responseText}`;
-      reject(errMsg);
-    }, () => {
-      // onAlways
-      window.clearTimeout(timeout);
-    });
-  });
+  const body = new FormData();
+  body.set('address', islandAddr);
+  const options = {method:'POST',url:'/api/follow-island',body:body};
+  return ajaxPromise(options, 10);
 }
