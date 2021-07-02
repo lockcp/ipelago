@@ -165,3 +165,11 @@ type Cluster struct {
 	ID   string
 	Name string
 }
+
+type CodingNet struct {
+	Data struct {
+		File struct {
+			Data string
+		}
+	}
+}

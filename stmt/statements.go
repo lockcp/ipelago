@@ -111,11 +111,14 @@ const CountMessages = `
 const InsertDeny = `
   INSERT INTO denylist (ctime, address) VALUES (?, ?);`
 
-const CountDeny = `
-  SELECT count(*) FROM denylist WHERE address=?;`
-
 const DeleteDeny = `
   DELETE FROM denylist WHERE address=?;`
 
 const GetDenyList = `
   SELECT address FROM denylist ORDER BY ctime DESC;`
+
+const CountDeny = `
+  SELECT count(*) FROM denylist WHERE address=?;`
+
+const CountIsland = `
+  SELECT count(*) FROM island WHERE address=?;`

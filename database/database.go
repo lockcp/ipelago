@@ -216,6 +216,11 @@ func (db *DB) DeleteMessage(id string) error {
 	return db.Exec(stmt.DeleteMessage, id)
 }
 
+func (db *DB) IsFollowed(address string) (bool, error) {
+	n, err := getInt1(db.DB, stmt.CountIsland, address)
+	return n > 0, err
+}
+
 func (db *DB) IsDeny(address string) (bool, error) {
 	n, err := getInt1(db.DB, stmt.CountDeny, address)
 	return n > 0, err

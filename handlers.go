@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -127,12 +128,13 @@ func publishNewsletter(c echo.Context) error {
 
 func followIsland(c echo.Context) (err error) {
 	address := c.FormValue("address")
-	ok, err := db.IsDeny(address)
-	if err != nil {
+	isDeny, e1 := db.IsDeny(address)
+	isFollowed, e2 := db.IsFollowed(address)
+	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
-	if ok {
-		return fmt.Errorf("DENY")
+	if isDeny || isFollowed {
+		return fmt.Errorf("DENY or Followed")
 	}
 	news, err := getNews(address)
 	if err != nil {
@@ -187,6 +189,13 @@ func getNewsAndUpdate(island *Island) (status Status, err error) {
 }
 
 func getNews(address string) (news Newsletter, err error) {
+	ok, err := isCodingNet(address)
+	if err != nil {
+		return
+	}
+	if ok {
+		address = getRealAddress(address)
+	}
 	done := make(chan bool, 1)
 
 	var res *http.Response
@@ -208,14 +217,39 @@ func getNews(address string) (news Newsletter, err error) {
 		if err != nil {
 			return
 		}
+
+		var codingData model.CodingNet
+		if ok {
+			// 如果是 coding.net 地址
+			if err = json.Unmarshal(blob, &codingData); err != nil {
+				return
+			}
+			blob = []byte(codingData.Data.File.Data)
+		}
+
 		if err = util.CheckStringSize(string(blob), model.MsgSizeLimit); err != nil {
-			return news, fmt.Errorf("the size exceeds the limit (15KB)")
+			return
 		}
 		err = json.Unmarshal(blob, &news)
 		return
 	case <-time.After(5 * time.Second):
 		return news, fmt.Errorf("timeout")
 	}
+}
+
+func isCodingNet(address string) (ok bool, err error) {
+	u, err := url.Parse(address)
+	if err != nil {
+		return
+	}
+	ok = strings.Contains(u.Host, "coding.net")
+	return
+}
+
+func getRealAddress(address string) string {
+	parts := strings.Split(address, "/")
+	user := strings.Split(parts[2], ".")[0]
+	return "https://" + parts[2] + "/api/user/" + user + "/project/" + parts[4] + "/shared-depot/" + parts[5] + "/git/blob/master/" + parts[len(parts)-1]
 }
 
 func updateNote(c echo.Context) error {
