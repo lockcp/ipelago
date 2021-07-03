@@ -1,5 +1,7 @@
 "use strict"
 
+const everyPage = 10; // 每一页有多少条消息。
+
 const httpRegex = /https?:\/\/[^\s,()!]+/;
 
 // make a new vnode by name, or return its view.

@@ -82,25 +82,25 @@ function init() {
           Alerts.insert('info', '没有任何消息，可能尚未订阅小岛');
           return;
         }
-        if (messages.length > 10) {
-          $(MoreBtn.id).show();
-        }
         $(MsgPostArea.id).show();
         window.setTimeout(() => { $(MsgInput.id).focus(); }, 500);
         MsgList.append(messages);
         lastTime = messages[messages.length-1].Time;
-        $(MoreBtn.id).click(() => {
-          ajax({method:'GET',url:'/api/more-messages?time='+lastTime,alerts:BottomAlerts,buttonID:MoreBtn.id},
-              (moreMessages) => {
-                if (!moreMessages || moreMessages.length == 0) {
-                  BottomAlerts.insert('primary', '没有更多消息了');
-                  $(MoreBtn.id).hide();
-                  return;
-                }
-                MsgList.append(moreMessages);
-                lastTime = moreMessages[moreMessages.length-1].Time;
-              });
-        });
+
+        if (messages.length > everyPage) {
+          $(MoreBtn.id).show().click(() => {
+            ajax({method:'GET',url:'/api/more-messages?time='+lastTime,alerts:BottomAlerts,buttonID:MoreBtn.id},
+                (moreMessages) => {
+                  if (!moreMessages || moreMessages.length == 0) {
+                    BottomAlerts.insert('primary', '没有更多消息了');
+                    $(MoreBtn.id).hide();
+                    return;
+                  }
+                  MsgList.append(moreMessages);
+                  lastTime = moreMessages[moreMessages.length-1].Time;
+                });
+          });
+        }
       }, null, () => {
         $(Loading.id).hide();
       });

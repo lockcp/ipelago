@@ -3,8 +3,8 @@ async function followIslands(islands) {
   for (let i=0; i<islands.length; i++) {
     Logs.insert('dark', '正在尝试订阅: ' + islands[i]);
     try {
-      const name = await follow(islands[i]);
-      Logs.insert('success', '订阅成功: ' + name);
+      const result = await follow(islands[i]);
+      Logs.insert('success', '订阅成功: ' + result.message);
     } catch (error) {
       if (error.indexOf("UNIQUE constraint failed: island.address") >= 0) {
         // 忽略已订阅的小岛

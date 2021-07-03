@@ -224,7 +224,7 @@ const MoreBtn = cc('button');
 const BottomAlerts = CreateAlerts();
 
 const BottomArea = cc('p', null, [
-  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}),
+  m(MoreBtn).text('More').addClass('btn btn-primary').attr({type:'button'}).hide(),
 ]);
 
 $('#root').append([
@@ -265,18 +265,21 @@ function getMessages(id) {
         $(BottomArea.id).show();
         MsgList.append(messages);
         lastTime = messages[messages.length-1].Time;
-        $(MoreBtn.id).click(() => {
-          ajax({method:'GET',url:`/api/more-island-messages?id=${id}&time=${lastTime}`,alerts:BottomAlerts,buttonID:MoreBtn.id},
-              (moreMessages) => {
-                if (!moreMessages || moreMessages.length == 0) {
-                  BottomAlerts.insert('primary', '没有更多消息了');
-                  $(MoreBtn.id).hide();
-                  return;
-                }
-                MsgList.append(moreMessages);
-                lastTime = moreMessages[moreMessages.length-1].Time;
-              });
-        });
+
+        if (messages.length > everyPage) {
+          $(MoreBtn.id).show().click(() => {
+            ajax({method:'GET',url:`/api/more-island-messages?id=${id}&time=${lastTime}`,alerts:BottomAlerts,buttonID:MoreBtn.id},
+                (moreMessages) => {
+                  if (!moreMessages || moreMessages.length == 0) {
+                    BottomAlerts.insert('primary', '没有更多消息了');
+                    $(MoreBtn.id).hide();
+                    return;
+                  }
+                  MsgList.append(moreMessages);
+                  lastTime = moreMessages[moreMessages.length-1].Time;
+                });
+          });
+        }
       });
 }
 
