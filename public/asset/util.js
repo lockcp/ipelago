@@ -76,8 +76,10 @@ function ajax(options, onSuccess, onFail, onAlways) {
       let errMsg;
       if (this.response && this.response.message) {
         errMsg = `${this.status} ${this.response.message}`;
+      } else if (xhr.responseType == 'text') {
+        errMsg = `${this.status} ${this.responseText}`;
       } else {
-        errMsg = `${this.status} ${this.responseText}`
+        errMsg = `${this.status}`;
       }
       handleErr(errMsg);
     }

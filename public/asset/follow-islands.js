@@ -11,8 +11,8 @@ async function followIslands(islands) {
         Logs.insert('dark', '自动忽略: ' + islands[i]);
         continue;
       }
-      if (error.indexOf("DENY") >= 0) {
-        // 忽略已屏蔽的小岛
+      if (error.indexOf("DENY") >= 0 || error.indexOf("Followed") >= 0) {
+        // 忽略已屏蔽或已订阅的小岛
         Logs.insert('dark', '自动忽略: ' + islands[i]);
         continue;
       }

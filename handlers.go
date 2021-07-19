@@ -126,15 +126,18 @@ func publishNewsletter(c echo.Context) error {
 	return db.PublishNewsletter(newsletterPath)
 }
 
-func followIsland(c echo.Context) (err error) {
+func followIsland(c echo.Context) error {
 	address := c.FormValue("address")
 	isDeny, e1 := db.IsDeny(address)
 	isFollowed, e2 := db.IsFollowed(address)
 	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
 	}
-	if isDeny || isFollowed {
-		return fmt.Errorf("DENY or Followed")
+	if isDeny {
+		return fmt.Errorf("DENY")
+	}
+	if isFollowed {
+		return fmt.Errorf("Followed")
 	}
 	news, err := getNews(address)
 	if err != nil {
@@ -196,8 +199,8 @@ func getNews(address string) (news Newsletter, err error) {
 	if ok {
 		address = getRealAddress(address)
 	}
-	done := make(chan bool, 1)
 
+	done := make(chan bool, 1)
 	var res *http.Response
 	go func() {
 		res, err = http.Get(address)
@@ -219,8 +222,8 @@ func getNews(address string) (news Newsletter, err error) {
 		}
 
 		var codingData model.CodingNet
+		// 如果是 coding.net 地址
 		if ok {
-			// 如果是 coding.net 地址
 			if err = json.Unmarshal(blob, &codingData); err != nil {
 				return
 			}

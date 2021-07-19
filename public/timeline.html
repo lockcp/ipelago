@@ -106,7 +106,8 @@ function init() {
       });
 
   $(UpdateBtn.id).click(() => {
-    ajax({method:'GET',url:'/api/all-islands',alerts:Alerts,buttonID:UpdateBtn.id},
+    $(UpdateBtn.id).hide();
+    ajax({method:'GET',url:'/api/all-islands',alerts:Alerts},
       (islands) => {
         if (!islands || islands.length == 0) {
           Alerts.insert('info', '尚未订阅任何小岛');

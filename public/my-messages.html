@@ -43,7 +43,7 @@ const TitleArea = {
   view: () => m('div').addClass('d-flex justify-content-start align-items-end my-5').append([
     m('div').addClass('display-6').text('My Messages'),
     m(PublishBtn).text('publish').attr({type:'button'})
-      .addClass('btn btn-outline-primary btn-sm ms-2').hide(),
+      .addClass('btn btn-outline-success btn-sm ms-2').hide(),
     m('a').attr({href:'/public/home.html',title:'home'})
       .addClass('btn btn-outline-secondary btn-sm ms-2').append(
         m('i').addClass('bi bi-house-door')

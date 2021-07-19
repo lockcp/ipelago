@@ -99,7 +99,7 @@ const SubmitBtnArea = cc('p', null, [
     }),
   m(MsgBtn).text('Messages').addClass('btn btn-secondary ms-2')
     .attr({type:'button',href:'/public/my-messages.html'}).hide(),
-  m(PublishBtn).text('publish').addClass('btn btn-secondary ms-2').hide().click(() => {
+  m(PublishBtn).text('Publish').addClass('btn btn-secondary ms-2').hide().click(() => {
     ajax({method:'GET',url:'/api/publish-newsletter',alerts:Alerts,buttonID:PublishBtn.id},
         () => {
           window.location = '/public/publish.html';
