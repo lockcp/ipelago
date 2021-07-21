@@ -99,7 +99,7 @@ async function init() {
         MsgList.append(messages);
         lastTime = messages[messages.length-1].Time;
 
-        if (messages.length > everyPage) {
+        if (messages.length >= everyPage) {
           $(MoreBtn.id).show().click(() => {
             ajax({method:'GET',url:'/api/more-my-messages?time='+lastTime,alerts:SubmitAlerts,buttonID:MoreBtn.id},
                 (moreMessages) => {

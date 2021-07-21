@@ -266,7 +266,7 @@ function getMessages(id) {
         MsgList.append(messages);
         lastTime = messages[messages.length-1].Time;
 
-        if (messages.length > everyPage) {
+        if (messages.length >= everyPage) {
           $(MoreBtn.id).show().click(() => {
             ajax({method:'GET',url:`/api/more-island-messages?id=${id}&time=${lastTime}`,alerts:BottomAlerts,buttonID:MoreBtn.id},
                 (moreMessages) => {
