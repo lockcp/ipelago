@@ -192,14 +192,6 @@ func getNewsAndUpdate(island *Island) (status Status, err error) {
 }
 
 func getNews(address string) (news Newsletter, err error) {
-	ok, err := isCodingNet(address)
-	if err != nil {
-		return
-	}
-	if ok {
-		address = getRealAddress(address)
-	}
-
 	done := make(chan bool, 1)
 	var res *http.Response
 	go func() {
@@ -221,15 +213,6 @@ func getNews(address string) (news Newsletter, err error) {
 			return
 		}
 
-		var codingData model.CodingNet
-		// 如果是 coding.net 地址
-		if ok {
-			if err = json.Unmarshal(blob, &codingData); err != nil {
-				return
-			}
-			blob = []byte(codingData.Data.File.Data)
-		}
-
 		if err = util.CheckStringSize(string(blob), model.MsgSizeLimit); err != nil {
 			return
 		}
@@ -247,6 +230,14 @@ func isCodingNet(address string) (ok bool, err error) {
 	}
 	ok = strings.Contains(u.Host, "coding.net")
 	return
+}
+
+func getCodingRealAddr(address string) string {
+	parts := strings.Split(address, "/")
+	project := parts[4]
+	depot := parts[5]
+	file := parts[len(parts)-1]
+	return "https://" + parts[2] + "/p/" + project + "/d/" + depot + "/git/raw/master/" + file
 }
 
 func getRealAddress(address string) string {
