@@ -7,7 +7,7 @@ iPelago 是一种不同于微博、长毛象、独立博客的分布式消息分
 
 ### 直接下载可执行文件
 
-- Windows 用户可直接下载 https://github.com/ahui2016/ipelago/releases
+- Windows 用户可直接下载 https://github.com/ahui2016/ipelago/releases 或 https://gitee.com/ipelago/ipelago/releases
 - 下载解压缩后，双击 ipelago.exe 运行，然后用浏览器访问 `http://127.0.0.1:996` 即可。
 
 ### 手动编译
