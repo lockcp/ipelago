@@ -12,7 +12,7 @@ func main() {
 
 	e.File("/", "public/home.html")
 
-	api := e.Group("/api", sleep)
+	api := e.Group("/api")
 	api.GET("/get-my-island", getMyIsland)
 	api.GET("/get-island/:id", getIslandWithoutMsg)
 	api.POST("/create-my-island", createMyIsland)

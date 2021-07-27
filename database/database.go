@@ -13,7 +13,8 @@ import (
 
 const MyIslandID = "My-Island-ID"
 
-const OnePage = 10 // 每一页有多少条消息。
+// 每一页有多少条消息。注意：如果修改该数值，同时需要修改 util.js 中的 everyPage
+const OnePage = 99
 
 type (
 	Island     = model.Island
