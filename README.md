@@ -28,3 +28,7 @@ $ ./ipelago
 ```
 $ ./ipelago -addr 127.0.0.1:955
 ```
+
+## 使用方法
+
+使用教程请看 [《iPelago三分钟入门教程》](https://www.ipelago.org/public/3-min-tutorial.html)
